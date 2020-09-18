@@ -49,45 +49,45 @@ class AppStack(core.Stack):
             string_parameter_name="/dev/compute/container/ecs-cluster-name"
         ).string_value
 
-        # TODO Get vpc from ssm parameter
-        vpc_name="shared-pipeline/Prod/SharedStack/Vpc"
+        # # TODO Get vpc from ssm parameter
+        # vpc_name="shared-pipeline/Prod/SharedStack/Vpc"
 
-        vpc_id="vpc-03c87f61ce148979c"
+        # vpc_id="vpc-03c87f61ce148979c"
 
-        # Get vpc from lookup attributes
-        ec2_vpc = ec2.Vpc.from_lookup(
-            self, "GetVpc", 
-            vpc_name=vpc_name,
-            vpc_id=vpc_id
-        )
-
-        # vpc_az = ssm.StringListParameter.from_string_list_parameter_name(
-        #     self, "GetVpcAz",
-        #     string_list_parameter_name="/dev/network/vpc/vpc-az"
-        # ).string_list_value
-
-        # # using string instead of stringlist because of subnets parsing issue
-        # vpc_public_subnets_1 = ssm.StringParameter.from_string_parameter_name(
-        #     self, "GetVpcPublicSubnets1",
-        #     string_parameter_name="/dev/network/vpc/vpc-public-subnets-1"
-        # ).string_value
-
-        # vpc_public_subnets_2 = ssm.StringParameter.from_string_parameter_name(
-        #     self, "GetVpcPublicSubnets2",
-        #     string_parameter_name="/dev/network/vpc/vpc-public-subnets-2"
-        # ).string_value
-
-        # vpc_id = ssm.StringParameter.from_string_parameter_name(
-        #     self, "GetVpcId",
-        #     string_parameter_name="/dev/network/vpc/vpc-id"
-        # ).string_value
-
-        # ec2_vpc = ec2.Vpc.from_vpc_attributes(
-        #     self, "GetVpc",
-        #     availability_zones=vpc_az,
-        #     vpc_id=vpc_id,
-        #     public_subnet_ids=[vpc_public_subnets_1,vpc_public_subnets_2]
+        # # Get vpc from lookup attributes
+        # ec2_vpc = ec2.Vpc.from_lookup(
+        #     self, "GetVpc", 
+        #     vpc_name=vpc_name,
+        #     vpc_id=vpc_id
         # )
+
+        vpc_az = ssm.StringListParameter.from_string_list_parameter_name(
+            self, "GetVpcAz",
+            string_list_parameter_name="/dev/network/vpc/vpc-az"
+        ).string_list_value
+
+        # using string instead of stringlist because of subnets parsing issue
+        vpc_public_subnets_1 = ssm.StringParameter.from_string_parameter_name(
+            self, "GetVpcPublicSubnets1",
+            string_parameter_name="/dev/network/vpc/vpc-public-subnets-1"
+        ).string_value
+
+        vpc_public_subnets_2 = ssm.StringParameter.from_string_parameter_name(
+            self, "GetVpcPublicSubnets2",
+            string_parameter_name="/dev/network/vpc/vpc-public-subnets-2"
+        ).string_value
+
+        vpc_id = ssm.StringParameter.from_string_parameter_name(
+            self, "GetVpcId",
+            string_parameter_name="/dev/network/vpc/vpc-id"
+        ).string_value
+
+        ec2_vpc = ec2.Vpc.from_vpc_attributes(
+            self, "GetVpc",
+            availability_zones=vpc_az,
+            vpc_id=vpc_id,
+            public_subnet_ids=[vpc_public_subnets_1,vpc_public_subnets_2]
+        )
 
         # Get security group id from ssm parameter
         security_group_id=ssm.StringParameter.from_string_parameter_name(
