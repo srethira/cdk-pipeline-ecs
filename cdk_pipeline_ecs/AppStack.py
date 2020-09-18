@@ -6,12 +6,15 @@ from aws_cdk import (
     aws_elasticloadbalancingv2 as elbv2,
     aws_elasticloadbalancingv2_targets as elb_targets
 )
-
+import os.path
+import pathlib
 
 class AppStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+        work_dir = pathlib.Path(__file__).parents[1]
 
         # Fargate Service
         task_definition = ecs.FargateTaskDefinition(
@@ -23,7 +26,12 @@ class AppStack(core.Stack):
 
         container = task_definition.add_container(
             "web", 
-            image=ecs.ContainerImage.from_registry("nginx:latest")
+            image=ecs.ContainerImage.from_asset(
+                os.path.join(
+                    work_dir, 
+                    "container"
+                )
+            )
         )
 
         port_mapping = ecs.PortMapping(
@@ -55,6 +63,7 @@ class AppStack(core.Stack):
             string_list_parameter_name="/dev/network/vpc/vpc-az"
         ).string_list_value
 
+        # using string instead of stringlist because of subnets parsing issue
         vpc_public_subnets_1 = ssm.StringParameter.from_string_parameter_name(
             self, "GetVpcPublicSubnets1",
             string_parameter_name="/dev/network/vpc/vpc-public-subnets-1"
@@ -122,6 +131,7 @@ class AppStack(core.Stack):
             targets=[service]
         )  
 
+        # add an output with a well-known name to read it from the integ tests
         url_output = core.CfnOutput(self, "UrlOutput", 
             value= f"https://{lb.load_balancer_dns_name}"
         )  
