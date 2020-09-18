@@ -55,10 +55,15 @@ class AppStack(core.Stack):
             string_list_parameter_name="/dev/network/vpc/vpc-az"
         ).string_list_value
 
-        vpc_public_subnets = ssm.StringListParameter.from_string_list_parameter_name(
-            self, "GetVpcPublicSubnets",
-            string_list_parameter_name="/dev/network/vpc/vpc-public-subnets"
-        ).string_list_value
+        vpc_public_subnets_1 = ssm.StringParameter.from_string_parameter_name(
+            self, "GetVpcPublicSubnets1",
+            string_parameter_name="/dev/network/vpc/vpc-public-subnets-1"
+        ).string_value
+
+        vpc_public_subnets_2 = ssm.StringParameter.from_string_parameter_name(
+            self, "GetVpcPublicSubnets2",
+            string_parameter_name="/dev/network/vpc/vpc-public-subnets-2"
+        ).string_value
 
         vpc_id = ssm.StringParameter.from_string_parameter_name(
             self, "GetVpcId",
@@ -69,7 +74,7 @@ class AppStack(core.Stack):
             self, "GetVpc",
             availability_zones=vpc_az,
             vpc_id=vpc_id,
-            public_subnet_ids=vpc_public_subnets
+            public_subnet_ids=[vpc_public_subnets_1,vpc_public_subnets_2]
         )
 
         # Get security group id from ssm parameter
