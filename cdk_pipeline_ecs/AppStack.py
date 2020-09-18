@@ -52,10 +52,7 @@ class AppStack(core.Stack):
         # TODO Get vpc from ssm parameter
         vpc_name="shared-pipeline/Prod/SharedStack/Vpc"
 
-        vpc_id = ssm.StringParameter.from_string_parameter_name(
-            self, "GetVpcId",
-            string_parameter_name="/dev/network/vpc/vpc-id"
-        ).string_value
+        vpc_id="vpc-03c87f61ce148979c"
 
         # Get vpc from lookup attributes
         ec2_vpc = ec2.Vpc.from_lookup(
