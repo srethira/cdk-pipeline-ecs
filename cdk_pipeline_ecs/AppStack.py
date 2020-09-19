@@ -49,18 +49,6 @@ class AppStack(core.Stack):
             string_parameter_name="/dev/compute/container/ecs-cluster-name"
         ).string_value
 
-        # # TODO Get vpc from ssm parameter
-        # vpc_name="shared-pipeline/Prod/SharedStack/Vpc"
-
-        # vpc_id="vpc-03c87f61ce148979c"
-
-        # # Get vpc from lookup attributes
-        # ec2_vpc = ec2.Vpc.from_lookup(
-        #     self, "GetVpc", 
-        #     vpc_name=vpc_name,
-        #     vpc_id=vpc_id
-        # )
-
         vpc_az = ssm.StringListParameter.from_string_list_parameter_name(
             self, "GetVpcAz",
             string_list_parameter_name="/dev/network/vpc/vpc-az"
@@ -113,7 +101,8 @@ class AppStack(core.Stack):
         service = ecs.FargateService(self, "Service", 
             cluster=ecs_cluster,
             task_definition=task_definition,
-            assign_public_ip=True
+            assign_public_ip=True,
+            deployment_controller=ecs.DeploymentControllerType.CODE_DEPLOY
         )
 
         # Create Application LoadBalancer
@@ -122,20 +111,33 @@ class AppStack(core.Stack):
             internet_facing=True
         )
 
-        # Add listener to the LB
-        listener = lb.add_listener("PublicListener", 
+        # Add prod listener to the LB
+        listener_prod = lb.add_listener("PublicListener", 
             port=80, 
             open=True
         )
 
+        # Add prof listener to the LB
+        listener_test = lb.add_listener("TestListener", 
+            port=8080, 
+            open=True
+        )
+
         # Route to container
-        listener.add_targets("Fargate",port=8000,
+        listener_prod.add_targets("Fargate",port=8000,
             # path_pattern="/container",
             # priority=10,
             targets=[service]
         )  
 
+        # Route to container
+        listener_test.add_targets("Fargate",port=8000,
+            # path_pattern="/container",
+            # priority=10,
+            targets=[service]
+        ) 
+
         # add an output with a well-known name to read it from the integ tests
         url_output = core.CfnOutput(self, "UrlOutput", 
-            value= f"https://{lb.load_balancer_dns_name}"
+            value= f"http://{lb.load_balancer_dns_name}"
         )  
