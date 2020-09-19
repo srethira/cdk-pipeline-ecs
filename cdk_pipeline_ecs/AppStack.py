@@ -112,7 +112,8 @@ class AppStack(core.Stack):
         # Create Fargate Service
         service = ecs.FargateService(self, "Service", 
             cluster=ecs_cluster,
-            task_definition=task_definition
+            task_definition=task_definition,
+            assign_public_ip=True
         )
 
         # Create Application LoadBalancer
