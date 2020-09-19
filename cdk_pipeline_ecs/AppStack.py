@@ -111,33 +111,20 @@ class AppStack(core.Stack):
             internet_facing=True
         )
 
-        # Add prod listener to the LB
-        listener_prod = lb.add_listener("PublicListener", 
+        # Add listener to the LB
+        listener = lb.add_listener("PublicListener", 
             port=80, 
             open=True
         )
 
-        # Add prof listener to the LB
-        listener_test = lb.add_listener("TestListener", 
-            port=8080, 
-            open=True
-        )
-
         # Route to container
-        listener_prod.add_targets("Fargate",port=8000,
+        listener.add_targets("Fargate",port=8000,
             # path_pattern="/container",
             # priority=10,
             targets=[service]
         )  
 
-        # Route to container
-        listener_test.add_targets("Fargate",port=8000,
-            # path_pattern="/container",
-            # priority=10,
-            targets=[service]
-        ) 
-
         # add an output with a well-known name to read it from the integ tests
         url_output = core.CfnOutput(self, "UrlOutput", 
-            value= f"http://{lb.load_balancer_dns_name}"
+            value= f"https://{lb.load_balancer_dns_name}"
         )  
