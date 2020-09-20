@@ -16,32 +16,6 @@ class AppStack(core.Stack):
 
         work_dir = pathlib.Path(__file__).parents[1]
 
-        # Fargate Service
-        task_definition = ecs.FargateTaskDefinition(
-            self, 
-            "TaskDef", 
-            memory_limit_mib=512, 
-            cpu=256
-        )
-
-        container = task_definition.add_container(
-            "web", 
-            image=ecs.ContainerImage.from_asset(
-                os.path.join(
-                    work_dir, 
-                    "container"
-                )
-            ),
-            environment=dict(name="latest")
-        )
-
-        port_mapping = ecs.PortMapping(
-            container_port=8000,
-            protocol=ecs.Protocol.TCP
-        )
-
-        container.add_port_mappings(port_mapping)
-
         # These below steps allows to reuse ecs cluster which is aleady creatd by shared stack
 
         # Get cluster name from ssm parameter
@@ -98,6 +72,32 @@ class AppStack(core.Stack):
             security_groups=[ec2_sgp]
         )
 
+        # Fargate Service
+        task_definition = ecs.FargateTaskDefinition(
+            self, 
+            "TaskDef", 
+            memory_limit_mib=512, 
+            cpu=256
+        )
+
+        container = task_definition.add_container(
+            "web", 
+            image=ecs.ContainerImage.from_asset(
+                os.path.join(
+                    work_dir, 
+                    "container"
+                )
+            ),
+            environment=dict(name="latest")
+        )
+
+        port_mapping = ecs.PortMapping(
+            container_port=8000,
+            protocol=ecs.Protocol.TCP
+        )
+
+        container.add_port_mappings(port_mapping)
+
         # Create Fargate Service
         service = ecs.FargateService(self, "Service", 
             cluster=ecs_cluster,
@@ -114,17 +114,8 @@ class AppStack(core.Stack):
             family=task_definition.family
         )
 
-        # cfn_task_definition = task_definition_rev.node.default_child.__getattribute__("cfn_options")
-        # print("cfn_task_definition",core.ICfnResourceOptions(cfn_task_definition))
-        # updte_replace_policy = core.CfnDeletionPolicy.RETAIN
-        # cfn_task_definition = task_definition_rev.node.default_child
-        # cfn_options = cfn_task_definition.get_att("cfn_options")
-        # cfn_task_definition.cfn_options = {
-        #     "updte_replace_policy" : core.CfnDeletionPolicy.RETAIN
-        # }
-        # print(cfn_options.to_string())
-        # cfn_options = cfn_task_definition.__getattribute__("cfn_options")
-        # cfn_options.__getattribute__("condition")
+        cfn_task_definition = task_definition_rev.node.default_child
+        cfn_task_definition.cfn_options.update_replace_policy = core.CfnDeletionPolicy.RETAIN
 
         container_rev = task_definition_rev.add_container("docker",
             image=ecs.ContainerImage.from_asset(
