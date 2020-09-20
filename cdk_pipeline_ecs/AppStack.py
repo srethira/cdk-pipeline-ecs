@@ -102,8 +102,28 @@ class AppStack(core.Stack):
             cluster=ecs_cluster,
             task_definition=task_definition,
             assign_public_ip=True,
-            deployment_controller=ecs.DeploymentControllerType.CODE_DEPLOY
+            deployment_controller=ecs.DeploymentController(
+                type=ecs.DeploymentControllerType.CODE_DEPLOY
+            )
         )
+
+        # task_definition_rev = ecs.FargateTaskDefinition(self, "TaskDefinitionNew", 
+        #     cpu=256,
+        #     memory_limit_mib=512,
+        #     family=task_definition.family
+        # )
+
+        # cfn_task_definition = task_definition_rev.node.default_child.__getattribute__("cfn_options")
+        # print("cfn_task_definition",core.ICfnResourceOptions(cfn_task_definition))
+        # updte_replace_policy = core.CfnDeletionPolicy.RETAIN
+        # cfn_task_definition = task_definition_rev.node.default_child
+        # cfn_options = cfn_task_definition.get_att("cfn_options")
+        # cfn_task_definition.cfn_options = {
+        #     "updte_replace_policy" : core.CfnDeletionPolicy.RETAIN
+        # }
+        # print(cfn_options.to_string())
+        # cfn_options = cfn_task_definition.__getattribute__("cfn_options")
+        # cfn_options.__getattribute__("condition")
 
         # Create Application LoadBalancer
         lb = elbv2.ApplicationLoadBalancer(self, "LB", 
@@ -126,5 +146,5 @@ class AppStack(core.Stack):
 
         # add an output with a well-known name to read it from the integ tests
         url_output = core.CfnOutput(self, "UrlOutput", 
-            value= f"https://{lb.load_balancer_dns_name}"
+            value= f"http://{lb.load_balancer_dns_name}"
         )  
