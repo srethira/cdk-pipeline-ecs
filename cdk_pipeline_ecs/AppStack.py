@@ -31,7 +31,8 @@ class AppStack(core.Stack):
                     work_dir, 
                     "container"
                 )
-            )
+            ),
+            environment=dict(name="latest")
         )
 
         port_mapping = ecs.PortMapping(
@@ -107,11 +108,11 @@ class AppStack(core.Stack):
             )
         )
 
-        # task_definition_rev = ecs.FargateTaskDefinition(self, "TaskDefinitionNew", 
-        #     cpu=256,
-        #     memory_limit_mib=512,
-        #     family=task_definition.family
-        # )
+        task_definition_rev = ecs.FargateTaskDefinition(self, "TaskDefinitionNew", 
+            cpu=256,
+            memory_limit_mib=512,
+            family=task_definition.family
+        )
 
         # cfn_task_definition = task_definition_rev.node.default_child.__getattribute__("cfn_options")
         # print("cfn_task_definition",core.ICfnResourceOptions(cfn_task_definition))
@@ -124,6 +125,18 @@ class AppStack(core.Stack):
         # print(cfn_options.to_string())
         # cfn_options = cfn_task_definition.__getattribute__("cfn_options")
         # cfn_options.__getattribute__("condition")
+
+        container_rev = task_definition_rev.add_container("docker",
+            image=ecs.ContainerImage.from_asset(
+                os.path.join(
+                    work_dir, 
+                    "container"
+                )
+            ),
+            environment=dict(name="docker-new")
+        )
+
+        container_rev.add_port_mappings(port_mapping)
 
         # Create Application LoadBalancer
         lb = elbv2.ApplicationLoadBalancer(self, "LB", 
