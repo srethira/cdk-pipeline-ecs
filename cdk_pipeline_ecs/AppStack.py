@@ -92,7 +92,7 @@ class AppStack(core.Stack):
             # Built custom health check for your application specific 
             # and add them here. Ex: Pingcheck, Database etc.
             health_check=ecs.HealthCheck(
-                command=["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+                command=["CMD-SHELL", "echo"]
             ),
             environment=dict(name="latest")
         )
