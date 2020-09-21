@@ -135,14 +135,25 @@ class AppStack(core.Stack):
             internet_facing=True
         )
 
-        # Add listener to the LB
-        listener = lb.add_listener("PublicListener", 
+        # Add test listener to the LB
+        test_listener = lb.add_listener("TestListener", 
+            port=8080, 
+            open=True
+        )
+
+        # Route to prod container
+        test_listener.add_targets("Fargate",port=8000,
+            targets=[service]
+        )
+
+        # Add prod listener to the LB
+        prod_listener = lb.add_listener("ProdListener", 
             port=80, 
             open=True
         )
 
-        # Route to container
-        listener.add_targets("Fargate",port=8000,
+        # Route to prod container
+        prod_listener.add_targets("Fargate",port=8000,
             targets=[service]
         )  
 
