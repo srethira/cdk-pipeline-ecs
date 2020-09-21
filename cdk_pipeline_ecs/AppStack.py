@@ -77,7 +77,8 @@ class AppStack(core.Stack):
             self, 
             "TaskDef", 
             memory_limit_mib=512, 
-            cpu=256
+            cpu=256,
+            
         )
 
         container = task_definition.add_container(
@@ -110,7 +111,9 @@ class AppStack(core.Stack):
             assign_public_ip=True,
             deployment_controller=ecs.DeploymentController(
                 type=ecs.DeploymentControllerType.ECS
-            )
+            ),
+            desired_count=2,
+            min_healthy_percent=50
         )       
 
         # Create Application LoadBalancer
