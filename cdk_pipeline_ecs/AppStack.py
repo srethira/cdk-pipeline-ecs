@@ -90,7 +90,7 @@ class AppStack(core.Stack):
             ),
             health_check=ecs.HealthCheck(
                 command=["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
-            )
+            ),
             environment=dict(name="latest")
         )
 
