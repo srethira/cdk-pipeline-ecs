@@ -88,6 +88,9 @@ class AppStack(core.Stack):
                     "container"
                 )
             ),
+            health_check=ecs.HealthCheck(
+                command=["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+            )
             environment=dict(name="latest")
         )
 
@@ -104,30 +107,9 @@ class AppStack(core.Stack):
             task_definition=task_definition,
             assign_public_ip=True,
             deployment_controller=ecs.DeploymentController(
-                type=ecs.DeploymentControllerType.CODE_DEPLOY
+                type=ecs.DeploymentControllerType.ECS
             )
-        )
-
-        task_definition_rev = ecs.FargateTaskDefinition(self, "TaskDefinitionNew", 
-            cpu=256,
-            memory_limit_mib=512,
-            family=task_definition.family
-        )
-
-        cfn_task_definition = task_definition_rev.node.default_child
-        cfn_task_definition.cfn_options.update_replace_policy = core.CfnDeletionPolicy.RETAIN
-
-        container_rev = task_definition_rev.add_container("docker",
-            image=ecs.ContainerImage.from_asset(
-                os.path.join(
-                    work_dir, 
-                    "container_temp"
-                )
-            ),
-            environment=dict(name="docker-new")
-        )
-
-        container_rev.add_port_mappings(port_mapping)
+        )       
 
         # Create Application LoadBalancer
         lb = elbv2.ApplicationLoadBalancer(self, "LB", 
@@ -135,25 +117,14 @@ class AppStack(core.Stack):
             internet_facing=True
         )
 
-        # Add test listener to the LB
-        test_listener = lb.add_listener("TestListener", 
-            port=8080, 
-            open=True
-        )
-
-        # Route to prod container
-        test_listener.add_targets("TestFargate",port=8080,
-            targets=[service]
-        )
-
-        # Add prod listener to the LB
-        prod_listener = lb.add_listener("ProdListener", 
+        # Add listener to the LB
+        listener = lb.add_listener("Listener", 
             port=80, 
             open=True
         )
 
-        # Route to prod container
-        prod_listener.add_targets("ProdFargate",port=80,
+        # Route to container
+        listener.add_targets("Fargate",port=80,
             targets=[service]
         )  
 

@@ -29,7 +29,9 @@ class PipelineStack(Stack):
                 oauth_token=SecretValue.secrets_manager(github_token_secret_name),
                 trigger=codepipeline_actions.GitHubTrigger.POLL,
                 owner="srethira",
-                repo="cdk-pipeline-ecs"),
+                repo="cdk-pipeline-ecs",
+                branch="ecs-ru"
+            ),
             synth_action=SimpleSynthAction(
                 source_artifact=source_artifact,
                 cloud_assembly_artifact=cloud_assembly_artifact,
@@ -37,7 +39,6 @@ class PipelineStack(Stack):
                 # build_command="mvn package",
                 synth_command="cdk synth",
                 copy_environment_variables=["GITHUB_TOKEN"]
-
             )
         )
 
