@@ -142,7 +142,7 @@ class AppStack(core.Stack):
         )
 
         # Route to prod container
-        test_listener.add_targets("Fargate",port=8000,
+        test_listener.add_targets("TestFargate",port=8000,
             targets=[service]
         )
 
@@ -153,7 +153,7 @@ class AppStack(core.Stack):
         )
 
         # Route to prod container
-        prod_listener.add_targets("Fargate",port=8000,
+        prod_listener.add_targets("ProdFargate",port=8000,
             targets=[service]
         )  
 
