@@ -121,7 +121,7 @@ class AppStack(core.Stack):
             image=ecs.ContainerImage.from_asset(
                 os.path.join(
                     work_dir, 
-                    "container"
+                    "container_temp"
                 )
             ),
             environment=dict(name="docker-new")
