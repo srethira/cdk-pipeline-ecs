@@ -10,6 +10,7 @@ import os.path
 import pathlib
 
 class AppStack(core.Stack):
+    load_balancer_dns_name: core.CfnOutput = None
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -134,6 +135,7 @@ class AppStack(core.Stack):
         )  
 
         # add an output with a well-known name to read it from the integ tests
-        url_output = core.CfnOutput(self, "UrlOutput", 
-            value= f"http://{lb.load_balancer_dns_name}"
-        )  
+        # load_balancer_address = core.CfnOutput(self, "UrlOutput", 
+        #     value= f"http://{lb.load_balancer_dns_name}"
+        # )  
+        self.load_balancer_dns_name = lb.load_balancer_dns_name

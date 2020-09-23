@@ -1,5 +1,5 @@
 from aws_cdk.core import Stack, StackProps, Construct, SecretValue, Environment
-from aws_cdk.pipelines import CdkPipeline, SimpleSynthAction
+from aws_cdk.pipelines import CdkPipeline, SimpleSynthAction, ShellScriptAction
 from ApplicationStage import ApplicationStage
 
 import aws_cdk.aws_codepipeline as codepipeline
@@ -39,6 +39,22 @@ class PipelineStack(Stack):
                 build_command="python -m unittest test/test_*",
                 synth_command="cdk synth",
                 copy_environment_variables=["GITHUB_TOKEN"]
+            )
+        )
+
+        testing = ApplicationStage(self, 'Testing',
+            env=Environment(account="462864815626", region="us-west-1"))
+
+        testing_stage = pipeline.add_application_stage(testing)
+
+        testing_stage.add_actions(ShellScriptAction(action_name='validate', commands=[
+                'curl -Ssf $ENDPOINT_URL',
+            ], 
+            use_outputs=dict(
+                ENDPOINT_URL=pipeline.stack_output(
+                    testing.load_balancer_address
+                    )
+                )
             )
         )
 
