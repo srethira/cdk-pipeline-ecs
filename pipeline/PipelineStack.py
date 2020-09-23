@@ -42,17 +42,17 @@ class PipelineStack(Stack):
             )
         )
 
-        testing = ApplicationStage(self, 'Testing',
-            env=Environment(account="462864815626", region="us-west-1"))
+        prod = ApplicationStage(self, 'Prod',
+            env=Environment(account="462864815626", region="us-west-2"))
 
-        testing_stage = pipeline.add_application_stage(testing)
+        prod_stage = pipeline.add_application_stage(prod)
 
-        testing_stage.add_actions(ShellScriptAction(action_name='validate', commands=[
+        prod_stage.add_actions(ShellScriptAction(action_name='validate', commands=[
                 'curl -Ssf $ENDPOINT_URL',
             ], 
             use_outputs=dict(
                 ENDPOINT_URL=pipeline.stack_output(
-                    testing.load_balancer_address
+                    prod.load_balancer_address
                     )
                 )
             )
@@ -66,5 +66,5 @@ class PipelineStack(Stack):
 
         # Do this as many times as necessary with any account and region
         # Account and region may be different from the pipeline's.
-        pipeline.add_application_stage(ApplicationStage(self, 'Prod',
-            env=Environment(account="462864815626", region="us-west-2")))
+        # pipeline.add_application_stage(ApplicationStage(self, 'Prod',
+        #     env=Environment(account="462864815626", region="us-west-2")))
