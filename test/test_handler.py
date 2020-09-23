@@ -60,7 +60,7 @@ class HTTPRequestHandlerTestCase(unittest.TestCase):
     def test_success_response(self):
         self.assertEqual(
                 self._test(MockRequest(b'/')),
-                b'HTTP/1.0 200 OK\r\nServer: BaseHTTP/x.x Python/x.x.x\r\nDate: DATETIME\r\nContent-Type: text/html\r\n\r\n<!doctype html>\n<html><head><title>It works</title></head>\n<body>\n    <h1>Hello from a Docker container</h1>\n    <p>This container got built from an asset and runs on Fargate.</p>\n    <img src="https://media.giphy.com/media/XeXJlF9ouoWkeAyHhO/giphy.gif">\n</body>\n'
+                b'HTTP/1.0 400 OK\r\nServer: BaseHTTP/x.x Python/x.x.x\r\nDate: DATETIME\r\nContent-Type: text/html\r\n\r\n<!doctype html>\n<html><head><title>It works</title></head>\n<body>\n    <h1>Hello from a Docker container</h1>\n    <p>This container got built from an asset and runs on Fargate.</p>\n    <img src="https://media.giphy.com/media/XeXJlF9ouoWkeAyHhO/giphy.gif">\n</body>\n'
                 )
 
 
