@@ -58,6 +58,12 @@ class PipelineStack(Stack):
             )
         )
 
+        testing_stage.add_actions(ShellScriptAction(action_name='integration', commands=[
+                'python -m test/test_handler.py',
+            ], 
+            additional_artifacts=[source_artifact]
+        )
+
         # Do this as many times as necessary with any account and region
         # Account and region may be different from the pipeline's.
         pipeline.add_application_stage(ApplicationStage(self, 'Prod',
