@@ -8,6 +8,6 @@ class ApplicationStage(Stage):
         super().__init__(scope, id, **kwargs)
 
         app_stack = AppStack(self, "AppStack")
-        
+
         self.load_balancer_address = CfnOutput(app_stack, "LbAddress",
-            value=f"https://{app_stack.load_balancer_dns_name}")
+            value=f"http://{app_stack.load_balancer_dns_name}")

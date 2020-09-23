@@ -32,6 +32,8 @@ class PipelineStack(Stack):
                 repo="cdk-pipeline-ecs",
                 branch="ecs-ru"
             ),
+            # Current limitation: generate CodeBuild reports within @aws-cdk/cdk-pipelines
+            # https://github.com/aws/aws-cdk/issues/10464
             synth_action=SimpleSynthAction(
                 source_artifact=source_artifact,
                 cloud_assembly_artifact=cloud_assembly_artifact,
@@ -47,6 +49,8 @@ class PipelineStack(Stack):
 
         prod_stage = pipeline.add_application_stage(prod)
 
+        # Current limitation ShellScriptAction needs cross-account/cross-region support
+        # https://github.com/aws/aws-cdk/issues/9625
         prod_stage.add_actions(ShellScriptAction(action_name='validate', commands=[
                 'curl -Ssf $ENDPOINT_URL',
             ], 
