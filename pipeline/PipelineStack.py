@@ -51,8 +51,6 @@ class PipelineStack(Stack):
 
         test_stage = pipeline.add_application_stage(test)
 
-        # Current limitation ShellScriptAction needs cross-account/cross-region support
-        # https://github.com/aws/aws-cdk/issues/9625
         test_stage.add_actions(ShellScriptAction(action_name='validate', commands=[
                 'curl -Ssf $ENDPOINT_URL',
             ], 
@@ -75,8 +73,6 @@ class PipelineStack(Stack):
 
         prod_stage = pipeline.add_application_stage(prod)
 
-        # Current limitation ShellScriptAction needs cross-account/cross-region support
-        # https://github.com/aws/aws-cdk/issues/9625
         prod_stage.add_actions(ShellScriptAction(action_name='validate', commands=[
                 'curl -Ssf $ENDPOINT_URL',
             ], 

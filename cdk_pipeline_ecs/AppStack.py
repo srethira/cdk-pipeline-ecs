@@ -4,15 +4,18 @@ from aws_cdk import (
     aws_ecs as ecs,
     aws_ssm as ssm,
     aws_elasticloadbalancingv2 as elbv2,
-    aws_elasticloadbalancingv2_targets as elb_targets
+    aws_elasticloadbalancingv2_targets as elb_targets,
+    aws_lambda as _lambda,
+    aws_dynamodb as dynamodb
 )
 import os.path
 import pathlib
 
+
 class AppStack(core.Stack):
     load_balancer_dns_name: core.CfnOutput = None
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, demo_table: dynamodb.Table, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         work_dir = pathlib.Path(__file__).parents[1]
@@ -73,6 +76,18 @@ class AppStack(core.Stack):
             security_groups=[ec2_sgp]
         )
 
+        # create producer lambda function
+        db_lambda = _lambda.Function(self, "lambda_function",
+            runtime=_lambda.Runtime.PYTHON_3_6,
+            handler="lambda_function.lambda_handler",
+            code=_lambda.Code.asset("./lambda")
+        )
+
+        db_lambda.add_environment("TABLE_NAME", demo_table.table_name)
+
+        # grant permission to lambda to write to demo table
+        demo_table.grant_write_data(db_lambda)
+
         # Fargate Service
         task_definition = ecs.FargateTaskDefinition(
             self, 
@@ -122,20 +137,24 @@ class AppStack(core.Stack):
             vpc=ec2_vpc, 
             internet_facing=True
         )
-
+        
         # Add listener to the LB
         listener = lb.add_listener("Listener", 
             port=80, 
             open=True
         )
 
-        # Route to container
-        listener.add_targets("Fargate",port=80,
+        # Default to Lambda
+        listener.add_targets("Lambda",
+            targets=[elb_targets.LambdaTarget(db_lambda)]
+        )  
+
+        # Additionally route to container
+        listener.add_targets("Fargate",port=8000,
+            path_pattern="/container",
+            priority=10,
             targets=[service]
         )  
 
         # add an output with a well-known name to read it from the integ tests
-        # load_balancer_address = core.CfnOutput(self, "UrlOutput", 
-        #     value= f"http://{lb.load_balancer_dns_name}"
-        # )  
         self.load_balancer_dns_name = lb.load_balancer_dns_name
