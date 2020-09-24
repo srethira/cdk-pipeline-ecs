@@ -44,6 +44,32 @@ class PipelineStack(Stack):
             )
         )
 
+        # Do this as many times as necessary with any account and region
+        # Account and region may be different from the pipeline's.
+        test = ApplicationStage(self, 'Testing',
+            env=Environment(account="462864815626", region="us-west-1"))
+
+        test_stage = pipeline.add_application_stage(test)
+
+        # Current limitation ShellScriptAction needs cross-account/cross-region support
+        # https://github.com/aws/aws-cdk/issues/9625
+        test_stage.add_actions(ShellScriptAction(action_name='validate', commands=[
+                'curl -Ssf $ENDPOINT_URL',
+            ], 
+            use_outputs=dict(
+                ENDPOINT_URL=pipeline.stack_output(
+                    test.load_balancer_address
+                    )
+                )
+            )
+        )
+
+        test_stage.add_actions(ShellScriptAction(action_name='integration', commands=[
+                'python -m unittest test/test_*',
+            ], 
+            additional_artifacts=[source_artifact])
+        )
+
         prod = ApplicationStage(self, 'Prod',
             env=Environment(account="462864815626", region="us-west-2"))
 
@@ -67,8 +93,3 @@ class PipelineStack(Stack):
             ], 
             additional_artifacts=[source_artifact])
         )
-
-        # Do this as many times as necessary with any account and region
-        # Account and region may be different from the pipeline's.
-        # pipeline.add_application_stage(ApplicationStage(self, 'Prod',
-        #     env=Environment(account="462864815626", region="us-west-2")))
