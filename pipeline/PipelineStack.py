@@ -37,7 +37,8 @@ class PipelineStack(Stack):
             synth_action=SimpleSynthAction(
                 source_artifact=source_artifact,
                 cloud_assembly_artifact=cloud_assembly_artifact,
-                install_command="npm install -g aws-cdk && pip install -r requirements.txt",
+                environment=dict(privileged=True),  # enable privileged mode for docker-in-docker (for asset bundling)
+                install_command="pipeline/bin/install.sh",
                 build_command="python -m unittest test/test_*",
                 synth_command="cdk synth",
                 copy_environment_variables=["GITHUB_TOKEN"]
