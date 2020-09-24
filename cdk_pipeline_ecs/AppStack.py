@@ -10,6 +10,7 @@ import os.path
 import pathlib
 
 class AppStack(core.Stack):
+    load_balancer_dns_name: core.CfnOutput = None
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -77,7 +78,8 @@ class AppStack(core.Stack):
             self, 
             "TaskDef", 
             memory_limit_mib=512, 
-            cpu=256
+            cpu=256,
+            
         )
 
         container = task_definition.add_container(
@@ -87,6 +89,11 @@ class AppStack(core.Stack):
                     work_dir, 
                     "container"
                 )
+            ),
+            # Built custom health check for your application specific 
+            # and add them here. Ex: Pingcheck, Database etc.
+            health_check=ecs.HealthCheck(
+                command=["CMD-SHELL", "echo"]
             ),
             environment=dict(name="latest")
         )
@@ -104,30 +111,11 @@ class AppStack(core.Stack):
             task_definition=task_definition,
             assign_public_ip=True,
             deployment_controller=ecs.DeploymentController(
-                type=ecs.DeploymentControllerType.CODE_DEPLOY
-            )
-        )
-
-        task_definition_rev = ecs.FargateTaskDefinition(self, "TaskDefinitionNew", 
-            cpu=256,
-            memory_limit_mib=512,
-            family=task_definition.family
-        )
-
-        cfn_task_definition = task_definition_rev.node.default_child
-        cfn_task_definition.cfn_options.update_replace_policy = core.CfnDeletionPolicy.RETAIN
-
-        container_rev = task_definition_rev.add_container("docker",
-            image=ecs.ContainerImage.from_asset(
-                os.path.join(
-                    work_dir, 
-                    "container_temp"
-                )
+                type=ecs.DeploymentControllerType.ECS
             ),
-            environment=dict(name="docker-new")
-        )
-
-        container_rev.add_port_mappings(port_mapping)
+            desired_count=2,
+            min_healthy_percent=50
+        )       
 
         # Create Application LoadBalancer
         lb = elbv2.ApplicationLoadBalancer(self, "LB", 
@@ -135,29 +123,19 @@ class AppStack(core.Stack):
             internet_facing=True
         )
 
-        # Add test listener to the LB
-        test_listener = lb.add_listener("TestListener", 
-            port=8080, 
-            open=True
-        )
-
-        # Route to prod container
-        test_listener.add_targets("TestFargate",port=8080,
-            targets=[service]
-        )
-
-        # Add prod listener to the LB
-        prod_listener = lb.add_listener("ProdListener", 
+        # Add listener to the LB
+        listener = lb.add_listener("Listener", 
             port=80, 
             open=True
         )
 
-        # Route to prod container
-        prod_listener.add_targets("ProdFargate",port=80,
+        # Route to container
+        listener.add_targets("Fargate",port=80,
             targets=[service]
         )  
 
         # add an output with a well-known name to read it from the integ tests
-        url_output = core.CfnOutput(self, "UrlOutput", 
-            value= f"http://{lb.load_balancer_dns_name}"
-        )  
+        # load_balancer_address = core.CfnOutput(self, "UrlOutput", 
+        #     value= f"http://{lb.load_balancer_dns_name}"
+        # )  
+        self.load_balancer_dns_name = lb.load_balancer_dns_name
