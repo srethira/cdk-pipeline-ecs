@@ -63,7 +63,7 @@ class PipelineStack(Stack):
         )
 
         prod_stage.add_actions(ShellScriptAction(action_name='integration', commands=[
-                'python -m test/test_handler.py',
+                'pwd && ls -lrt && python -m test/test_handler.py',
             ], 
             additional_artifacts=[source_artifact])
         )
