@@ -13,7 +13,7 @@ class DBStack(core.Stack):
         self.demo_table = aws_dynamodb.Table(
             self, "demo_table",
             partition_key=aws_dynamodb.Attribute(
-                name="id",
+                name="first_name",
                 type=aws_dynamodb.AttributeType.STRING
             )
         )
