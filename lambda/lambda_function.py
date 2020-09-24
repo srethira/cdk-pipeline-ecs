@@ -16,14 +16,11 @@ TABLE_NAME = os.environ['TABLE_NAME']
 def lambda_handler(event, context):
     table = dynamodb.Table(TABLE_NAME)
     # put item in table
-    response = table.put_item(
+    response = table.get_item(
         Item={
             'first_name': 'srikanth'
         }
     )
-
-    print("PutItem succeeded:")
-    print(json.dumps(response, indent=4, cls=DecimalEncoder))
 
     return {
         'statusCode': 200,
