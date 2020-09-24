@@ -10,11 +10,19 @@ class WebServiceStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        bundling_options = core.BundlingOptions(image=_lambda.Runtime.NODEJS_12_X.bundling_docker_image,
+            user="root",
+            command=[
+                'bash', '-c',
+                'cp /asset-input/* /asset-output/ && cd /asset-output && npm test'
+            ])
+        source_code = _lambda.Code.from_asset('./lambda', bundling=bundling_options)
+
         # create lambda function
         db_lambda = _lambda.Function(self, "lambda_function",
-            runtime=_lambda.Runtime.PYTHON_3_6,
+            runtime=_lambda.Runtime.NODEJS_12_X,
             handler="lambda_function.lambda_handler",
-            code=_lambda.Code.asset("./lambda")
+            code=source_code
         )
 
         gw = _apigw.LambdaRestApi(self, "Gateway", 
