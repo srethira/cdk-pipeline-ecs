@@ -12,7 +12,7 @@ import os.path
 import pathlib
 
 
-class AppStack(core.Stack):
+class ApplicationStack(core.Stack):
     load_balancer_dns_name: core.CfnOutput = None
 
     def __init__(self, scope: core.Construct, id: str, demo_table: dynamodb.Table, **kwargs) -> None:

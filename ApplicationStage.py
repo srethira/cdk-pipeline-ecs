@@ -1,6 +1,6 @@
 from aws_cdk.core import Construct, Stack, Stage, Environment, CfnOutput 
-from cdk_pipeline_ecs.AppStack import AppStack
-from cdk_pipeline_ecs.DBStack import DBStack
+from cdk_pipeline_ecs.ApplicationStack import ApplicationStack
+from cdk_pipeline_ecs.DatabaseStack import DatabaseStack
 from cdk_pipeline_ecs.WebServiceStack import WebServiceStack
 
 
@@ -11,9 +11,9 @@ class ApplicationStage(Stage):
     def __init__(self, scope: Construct, id: str, **kwargs):
         super().__init__(scope, id, **kwargs)
 
-        db_stack = DBStack(self, "DBStack")
+        db_stack = DatabaseStack(self, "DatabaseStack")
 
-        app_stack = AppStack(self, "AppStack", db_stack.demo_table)
+        app_stack = ApplicationStack(self, "ApplicationStack", db_stack.demo_table)
 
         web_service_stack = WebServiceStack(self, "WebServiceStack")
 
