@@ -80,13 +80,13 @@ class ApplicationStack(core.Stack):
         db_lambda = _lambda.Function(self, "lambda_function",
             runtime=_lambda.Runtime.PYTHON_3_6,
             handler="lambda_function.lambda_handler",
-            code=_lambda.Code.asset("./lambda")
+            code=_lambda.Code.asset("./lambda"),
+            environment=dict(TABLE_NAME=demo_table.table_name)
         )
 
-        db_lambda.add_environment("TABLE_NAME", demo_table.table_name)
 
         # grant permission to lambda to write to demo table
-        demo_table.grant_write_data(db_lambda)
+        demo_table.grant_full_access(db_lambda)
 
         # Fargate Service
         task_definition = ecs.FargateTaskDefinition(
