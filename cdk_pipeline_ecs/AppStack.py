@@ -76,7 +76,7 @@ class AppStack(core.Stack):
             security_groups=[ec2_sgp]
         )
 
-        # create producer lambda function
+        # create lambda function
         db_lambda = _lambda.Function(self, "lambda_function",
             runtime=_lambda.Runtime.PYTHON_3_6,
             handler="lambda_function.lambda_handler",

@@ -5,7 +5,6 @@ from aws_cdk import (
 )
 
 class DBStack(core.Stack):
-    table_name: core.CfnOutput = None
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)

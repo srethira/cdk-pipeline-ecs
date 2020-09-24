@@ -74,7 +74,7 @@ class PipelineStack(Stack):
         prod_stage = pipeline.add_application_stage(prod)
 
         prod_stage.add_actions(ShellScriptAction(action_name='validate', commands=[
-                'curl -Ssf $ENDPOINT_URL',
+                'curl -Ssf $ENDPOINT_URL/container',
             ], 
             use_outputs=dict(
                 ENDPOINT_URL=pipeline.stack_output(
