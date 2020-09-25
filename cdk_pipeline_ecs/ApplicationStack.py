@@ -79,7 +79,7 @@ class ApplicationStack(core.Stack):
         # create lambda function
         db_lambda = _lambda.Function(self, "lambda-function",
                                      runtime=_lambda.Runtime.NODEJS_12_X,
-                                     handler="handler.handler",
+                                     handler="lambda-function.handler",
                                      code=_lambda.Code.asset("./lambda"),
                                      environment=dict(
                                          TABLE_NAME=demo_table.table_name)
@@ -110,7 +110,7 @@ class ApplicationStack(core.Stack):
             health_check=ecs.HealthCheck(
                 command=["CMD-SHELL", "echo"]
             ),
-            environment=dict(name="latest")
+            # environment=dict(name="latest")
         )
 
         port_mapping = ecs.PortMapping(
