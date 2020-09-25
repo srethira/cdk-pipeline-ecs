@@ -19,7 +19,7 @@ import pathlib
 class ApplicationStack(core.Stack):
     load_balancer_dns_name: core.CfnOutput = None
 
-    def __init__(self, scope: core.Construct, id: str, demo_table: dynamodb.Table, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         work_dir = pathlib.Path(__file__).parents[1]
@@ -74,31 +74,45 @@ class ApplicationStack(core.Stack):
 
         # Pass vpc, sgp and ecs cluster name to get ecs cluster info
         ecs_cluster = ecs.Cluster.from_cluster_attributes(
-            self, "GetEcsCluster",
-            cluster_name=cluster_name,
+                                                self, "GetEcsCluster",
+                                                cluster_name=cluster_name,
             vpc=ec2_vpc,
             security_groups=[ec2_sgp]
         )
 
-        # create lambda function
-        db_lambda = _lambda.Function(self, "lambda-function",
+        # myDateTimeFunction lambda function
+        my_datetime_lambda = _lambda.Function(self, "my-datetime",
                                      runtime=_lambda.Runtime.NODEJS_12_X,
-                                     handler="lambda-function.handler",
-                                     code=_lambda.Code.asset("./lambda"),
-                                     environment=dict(
-                                         TABLE_NAME=demo_table.table_name)
+                                     handler="myDateTimeFunction.handler",
+                                     code=_lambda.Code.asset("./lambda")
                                      )
+
+        # beforeAllowTraffic lambda function
+        pre_traffic_lambda = _lambda.Function(self, "pre-traffic",
+                                              runtime=_lambda.Runtime.NODEJS_12_X,
+                                              handler="beforeAllowTraffic.handler",
+                                              code=_lambda.Code.asset(
+                                                  "./lambda")
+                                              )
+
+        # afterAllowTraffic lambda function
+        post_traffic_lambda = _lambda.Function(self, "post-traffic",
+                                               runtime=_lambda.Runtime.NODEJS_12_X,
+                                               handler="afterAllowTraffic.handler",
+                                               code=_lambda.Code.asset(
+                                                   "./lambda")
+                                               )
 
         # create a cloudwatch event rule
         rule = events.Rule(self, "CanaryRule",
                            schedule=events.Schedule.expression(
                                "rate(10 minutes)"),
-                           targets=[events_targets.LambdaFunction(db_lambda)]
+                           targets=[events_targets.LambdaFunction(my_datetime_lambda)]
                            )
 
         # create a cloudwatch alarm based on the lambda erros metrics
         alarm = cloudwatch.Alarm(self, "CanaryAlarm",
-                                 metric=db_lambda.metric_errors(),
+                                 metric=my_datetime_lambda.metric_errors(),
                                  threshold=0,
                                  evaluation_periods=2,
                                  datapoints_to_alarm=2,
@@ -108,16 +122,15 @@ class ApplicationStack(core.Stack):
                                  )
 
         codedeploy.LambdaDeploymentGroup(self, "db-lambda-deployment",
-                                         alias=db_lambda.current_version.add_alias(
+                                         alias=my_datetime_lambda.current_version.add_alias(
                                              "live"),
                                          deployment_config=codedeploy.LambdaDeploymentConfig.CANARY_10_PERCENT_5_MINUTES,
                                          alarms=[alarm],
                                          auto_rollback=codedeploy.AutoRollbackConfig(
-                                             deployment_in_alarm=True)
+                                             deployment_in_alarm=True),
+                                         pre_hook=pre_traffic_lambda,
+                                         post_hook=post_traffic_lambda
                                          )
-
-        # grant permission to lambda to write to demo table
-        demo_table.grant_full_access(db_lambda)
 
         # Fargate Service
         task_definition = ecs.FargateTaskDefinition(
@@ -179,7 +192,7 @@ class ApplicationStack(core.Stack):
 
         # Default to Lambda
         listener.add_targets("Lambda",
-                             targets=[elb_targets.LambdaTarget(db_lambda)]
+                             targets=[elb_targets.LambdaTarget(my_datetime_lambda)]
                              )
 
         # Additionally route to container
@@ -191,3 +204,7 @@ class ApplicationStack(core.Stack):
 
         # add an output with a well-known name to read it from the integ tests
         self.load_balancer_dns_name = lb.load_balancer_dns_name
+
+			
+			
+			

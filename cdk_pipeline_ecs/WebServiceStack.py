@@ -10,7 +10,7 @@ from aws_cdk import (
 class WebServiceStack(core.Stack):
     gw_url: core.CfnOutput = None
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, demo_table: dynamodb.Table, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         bundling_options = core.BundlingOptions(image=_lambda.Runtime.NODEJS_12_X.bundling_docker_image,
@@ -27,8 +27,13 @@ class WebServiceStack(core.Stack):
         web_lambda = _lambda.Function(self, "lambda-function",
                                       runtime=_lambda.Runtime.NODEJS_12_X,
                                       handler="handler.handler",
-                                      code=source_code
+                                      code=source_code,
+                                      environment=dict(
+                                         TABLE_NAME=demo_table.table_name)
                                       )
+
+         # grant permission to lambda to write to demo table
+        demo_table.grant_full_access(web_lambda)
 
         codedeploy.LambdaDeploymentGroup(
             self,
