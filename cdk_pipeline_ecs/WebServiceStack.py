@@ -27,6 +27,9 @@ class WebServiceStack(core.Stack):
             environment=dict(TABLE_NAME=demo_table.table_name)
         )
 
+        # grant permission to lambda to write to demo table
+        demo_table.grant_full_access(db_lambda)
+
         gw = _apigw.LambdaRestApi(self, "Gateway", 
             handler=db_lambda, 
             description="Endpoint for a simple Lambda-powered web service"
