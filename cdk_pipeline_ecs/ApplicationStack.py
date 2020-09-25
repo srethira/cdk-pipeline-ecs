@@ -7,7 +7,10 @@ from aws_cdk import (
     aws_elasticloadbalancingv2_targets as elb_targets,
     aws_lambda as _lambda,
     aws_dynamodb as dynamodb,
-    aws_codedeploy as codedeploy
+    aws_codedeploy as codedeploy,
+    aws_events as events,
+    aws_events_targets as events_targets,
+    aws_cloudwatch as cloudwatch
 )
 import os.path
 import pathlib
@@ -86,12 +89,32 @@ class ApplicationStack(core.Stack):
                                          TABLE_NAME=demo_table.table_name)
                                      )
 
-        codedeploy.LambdaDeploymentGroup(
-            self, 
-            "db-lambda-deployment",
-            alias=db_lambda.current_version.add_alias("live"),
-            deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE
-        )
+        # create a cloudwatch event rule
+        rule = events.Rule(self, "CanaryRule",
+                           schedule=events.Schedule.expression(
+                               "rate(10 minutes)"),
+                           targets=[events_targets.LambdaFunction(db_lambda)]
+                           )
+
+        # create a cloudwatch alarm based on the lambda erros metrics
+        alarm = cloudwatch.Alarm(self, "CanaryAlarm",
+                                 metric=db_lambda.metric_errors(),
+                                 threshold=0,
+                                 evaluation_periods=2,
+                                 datapoints_to_alarm=2,
+                                 treat_missing_data=cloudwatch.TreatMissingData.BREACHING,
+                                 period=core.Duration.minutes(5),
+                                 alarm_name="CanaryAlarm"
+                                 )
+
+        codedeploy.LambdaDeploymentGroup(self, "db-lambda-deployment",
+                                         alias=db_lambda.current_version.add_alias(
+                                             "live"),
+                                         deployment_config=codedeploy.LambdaDeploymentConfig.CANARY_10_PERCENT_5_MINUTES,
+                                         alarms=[alarm],
+                                         auto_rollback=codedeploy.AutoRollbackConfig(
+                                             deployment_in_alarm=True)
+                                         )
 
         # grant permission to lambda to write to demo table
         demo_table.grant_full_access(db_lambda)
