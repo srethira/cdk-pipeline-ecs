@@ -28,33 +28,39 @@ class ApplicationStack(core.Stack):
 
         # Get cluster name from ssm parameter
         cluster_name = ssm.StringParameter.from_string_parameter_name(
-            self, "GetClusterName",
+            self, 
+            "GetClusterName",
             string_parameter_name="/dev/compute/container/ecs-cluster-name"
         ).string_value
 
         vpc_az = ssm.StringListParameter.from_string_list_parameter_name(
-            self, "GetVpcAz",
+            self, 
+            "GetVpcAz",
             string_list_parameter_name="/dev/network/vpc/vpc-az"
         ).string_list_value
 
         # using string instead of stringlist because of subnets parsing issue
         vpc_public_subnets_1 = ssm.StringParameter.from_string_parameter_name(
-            self, "GetVpcPublicSubnets1",
+            self, 
+            "GetVpcPublicSubnets1",
             string_parameter_name="/dev/network/vpc/vpc-public-subnets-1"
         ).string_value
 
         vpc_public_subnets_2 = ssm.StringParameter.from_string_parameter_name(
-            self, "GetVpcPublicSubnets2",
+            self, 
+            "GetVpcPublicSubnets2",
             string_parameter_name="/dev/network/vpc/vpc-public-subnets-2"
         ).string_value
 
         vpc_id = ssm.StringParameter.from_string_parameter_name(
-            self, "GetVpcId",
+            self, 
+            "GetVpcId",
             string_parameter_name="/dev/network/vpc/vpc-id"
         ).string_value
 
         ec2_vpc = ec2.Vpc.from_vpc_attributes(
-            self, "GetVpc",
+            self, 
+            "GetVpc",
             availability_zones=vpc_az,
             vpc_id=vpc_id,
             public_subnet_ids=[vpc_public_subnets_1, vpc_public_subnets_2]
@@ -62,75 +68,97 @@ class ApplicationStack(core.Stack):
 
         # Get security group id from ssm parameter
         security_group_id = ssm.StringParameter.from_string_parameter_name(
-            self, "GetSgId",
+            self, 
+            "GetSgId",
             string_parameter_name="/dev/network/vpc/security-group-id"
         ).string_value
 
         # Get security group from lookup
         ec2_sgp = ec2.SecurityGroup.from_security_group_id(
-            self, "GetSgp",
+            self, 
+            "GetSgp",
             security_group_id=security_group_id
         )
 
         # Pass vpc, sgp and ecs cluster name to get ecs cluster info
         ecs_cluster = ecs.Cluster.from_cluster_attributes(
-                                                self, "GetEcsCluster",
-                                                cluster_name=cluster_name,
+            self, 
+            "GetEcsCluster",
+            cluster_name=cluster_name,
             vpc=ec2_vpc,
             security_groups=[ec2_sgp]
         )
 
         # myDateTimeFunction lambda function
-        my_datetime_lambda = _lambda.Function(self, "my-datetime",
-                                     runtime=_lambda.Runtime.NODEJS_12_X,
-                                     handler="myDateTimeFunction.handler",
-                                     code=_lambda.Code.asset("./lambda")
-                                     )
+        my_datetime_lambda = _lambda.Function(
+            self, 
+            "my-datetime",
+            runtime=_lambda.Runtime.NODEJS_12_X,
+            handler="myDateTimeFunction.handler",
+            code=_lambda.Code.asset("./lambda")
+        )
 
         # beforeAllowTraffic lambda function
-        pre_traffic_lambda = _lambda.Function(self, "pre-traffic",
-                                              runtime=_lambda.Runtime.NODEJS_12_X,
-                                              handler="beforeAllowTraffic.handler",
-                                              code=_lambda.Code.asset(
-                                                  "./lambda")
-                                              )
+        pre_traffic_lambda = _lambda.Function(
+            self, 
+            "pre-traffic",
+            runtime=_lambda.Runtime.NODEJS_12_X,
+            handler="beforeAllowTraffic.handler",
+            code=_lambda.Code.asset(
+                "./lambda"
+            )
+        )
 
         # afterAllowTraffic lambda function
-        post_traffic_lambda = _lambda.Function(self, "post-traffic",
-                                               runtime=_lambda.Runtime.NODEJS_12_X,
-                                               handler="afterAllowTraffic.handler",
-                                               code=_lambda.Code.asset(
-                                                   "./lambda")
-                                               )
+        post_traffic_lambda = _lambda.Function(
+            self, 
+            "post-traffic",
+            runtime=_lambda.Runtime.NODEJS_12_X,
+            handler="afterAllowTraffic.handler",
+            code=_lambda.Code.asset(
+                "./lambda"
+            )
+        )
 
         # create a cloudwatch event rule
-        rule = events.Rule(self, "CanaryRule",
-                           schedule=events.Schedule.expression(
-                               "rate(10 minutes)"),
-                           targets=[events_targets.LambdaFunction(my_datetime_lambda)]
-                           )
+        rule = events.Rule(
+            self, 
+            "CanaryRule",
+            schedule=events.Schedule.expression(
+                "rate(10 minutes)"
+            ),
+            targets=[events_targets.LambdaFunction(
+                my_datetime_lambda
+            )]
+        )
 
         # create a cloudwatch alarm based on the lambda erros metrics
-        alarm = cloudwatch.Alarm(self, "CanaryAlarm",
-                                 metric=my_datetime_lambda.metric_errors(),
-                                 threshold=0,
-                                 evaluation_periods=2,
-                                 datapoints_to_alarm=2,
-                                 treat_missing_data=cloudwatch.TreatMissingData.BREACHING,
-                                 period=core.Duration.minutes(5),
-                                 alarm_name="CanaryAlarm"
-                                 )
+        alarm = cloudwatch.Alarm(
+            self, 
+            "CanaryAlarm",
+            metric=my_datetime_lambda.metric_errors(),
+            threshold=0,
+            evaluation_periods=2,
+            datapoints_to_alarm=2,
+            treat_missing_data=cloudwatch.TreatMissingData.BREACHING,
+            period=core.Duration.minutes(5),
+            alarm_name="CanaryAlarm"
+        )
 
-        codedeploy.LambdaDeploymentGroup(self, "db-lambda-deployment",
-                                         alias=my_datetime_lambda.current_version.add_alias(
-                                             "live"),
-                                         deployment_config=codedeploy.LambdaDeploymentConfig.CANARY_10_PERCENT_5_MINUTES,
-                                         alarms=[alarm],
-                                         auto_rollback=codedeploy.AutoRollbackConfig(
-                                             deployment_in_alarm=True),
-                                         pre_hook=pre_traffic_lambda,
-                                         post_hook=post_traffic_lambda
-                                         )
+        codedeploy.LambdaDeploymentGroup(
+            self, 
+            "db-lambda-deployment",
+            alias=my_datetime_lambda.current_version.add_alias(
+                "live"
+            ),
+            deployment_config=codedeploy.LambdaDeploymentConfig.CANARY_10_PERCENT_5_MINUTES,
+            alarms=[alarm],
+            auto_rollback=codedeploy.AutoRollbackConfig(
+                deployment_in_alarm=True
+            ),
+            pre_hook=pre_traffic_lambda,
+            post_hook=post_traffic_lambda
+        )
 
         # Fargate Service
         task_definition = ecs.FargateTaskDefinition(
@@ -138,7 +166,6 @@ class ApplicationStack(core.Stack):
             "TaskDef",
             memory_limit_mib=512,
             cpu=256,
-
         )
 
         container = task_definition.add_container(
@@ -162,45 +189,57 @@ class ApplicationStack(core.Stack):
             protocol=ecs.Protocol.TCP
         )
 
-        container.add_port_mappings(port_mapping)
+        container.add_port_mappings(
+            port_mapping
+        )
 
         # Create Fargate Service
         # Current limitation: Blue/Green deployment
         # https://github.com/aws/aws-cdk/issues/1559
-        service = ecs.FargateService(self, "Service",
-                                     cluster=ecs_cluster,
-                                     task_definition=task_definition,
-                                     assign_public_ip=True,
-                                     deployment_controller=ecs.DeploymentController(
-                                         type=ecs.DeploymentControllerType.ECS
-                                     ),
-                                     desired_count=2,
-                                     min_healthy_percent=50
-                                     )
+        service = ecs.FargateService(
+            self, 
+            "Service",
+            cluster=ecs_cluster,
+            task_definition=task_definition,
+            assign_public_ip=True,
+            deployment_controller=ecs.DeploymentController(
+                type=ecs.DeploymentControllerType.ECS
+            ),
+            desired_count=2,
+            min_healthy_percent=50
+        )
 
         # Create Application LoadBalancer
-        lb = elbv2.ApplicationLoadBalancer(self, "LB",
-                                           vpc=ec2_vpc,
-                                           internet_facing=True
-                                           )
+        lb = elbv2.ApplicationLoadBalancer(
+            self, 
+            "LB",
+            vpc=ec2_vpc,
+            internet_facing=True
+        )
 
         # Add listener to the LB
-        listener = lb.add_listener("Listener",
-                                   port=80,
-                                   open=True
-                                   )
+        listener = lb.add_listener(
+            "Listener",
+            port=80,
+            open=True
+        )
 
         # Default to Lambda
-        listener.add_targets("Lambda",
-                             targets=[elb_targets.LambdaTarget(my_datetime_lambda)]
-                             )
+        listener.add_targets(
+            "Lambda",
+            targets=[elb_targets.LambdaTarget(
+                my_datetime_lambda
+            )]
+        )
 
         # Additionally route to container
-        listener.add_targets("Fargate", port=8000,
-                             path_pattern="/container",
-                             priority=10,
-                             targets=[service]
-                             )
+        listener.add_targets(
+            "Fargate", 
+            port=8000,
+            path_pattern="/container",
+            priority=10,
+            targets=[service]
+        )
 
         # add an output with a well-known name to read it from the integ tests
         self.load_balancer_dns_name = lb.load_balancer_dns_name

@@ -10,7 +10,8 @@ class DatabaseStack(core.Stack):
         super().__init__(scope, id, **kwargs)
         # create dynamo table
         self.demo_table = aws_dynamodb.Table(
-            self, "demo_table",
+            self, 
+            "demo_table",
             partition_key=aws_dynamodb.Attribute(
                 name="first_name",
                 type=aws_dynamodb.AttributeType.STRING
