@@ -18,14 +18,14 @@ class WebServiceStack(core.Stack):
                                                     'bash', '-c',
                                                     'cp /asset-input/* /asset-output/ && cd /asset-output && npm test'
                                                 ])
-                                                
+
         source_code = _lambda.Code.from_asset(
             './lambda', bundling=bundling_options)
 
         # create lambda function
         db_lambda = _lambda.Function(self, "lambda-function",
                                      runtime=_lambda.Runtime.NODEJS_12_X,
-                                     handler="lambda-function.handler",
+                                     handler="handler.handler",
                                      code=source_code,
                                      environment=dict(
                                          TABLE_NAME=demo_table.table_name)
