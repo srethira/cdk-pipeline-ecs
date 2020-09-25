@@ -23,7 +23,7 @@ class ApplicationStack(core.Stack):
         # These below steps allows to reuse ecs cluster which is aleady creatd by shared stack
 
         # Get cluster name from ssm parameter
-        cluster_name=ssm.StringParameter.from_string_parameter_name(
+        cluster_name = ssm.StringParameter.from_string_parameter_name(
             self, "GetClusterName",
             string_parameter_name="/dev/compute/container/ecs-cluster-name"
         ).string_value
@@ -53,24 +53,24 @@ class ApplicationStack(core.Stack):
             self, "GetVpc",
             availability_zones=vpc_az,
             vpc_id=vpc_id,
-            public_subnet_ids=[vpc_public_subnets_1,vpc_public_subnets_2]
+            public_subnet_ids=[vpc_public_subnets_1, vpc_public_subnets_2]
         )
 
         # Get security group id from ssm parameter
-        security_group_id=ssm.StringParameter.from_string_parameter_name(
+        security_group_id = ssm.StringParameter.from_string_parameter_name(
             self, "GetSgId",
             string_parameter_name="/dev/network/vpc/security-group-id"
         ).string_value
 
         # Get security group from lookup
         ec2_sgp = ec2.SecurityGroup.from_security_group_id(
-            self, "GetSgp", 
+            self, "GetSgp",
             security_group_id=security_group_id
         )
 
         # Pass vpc, sgp and ecs cluster name to get ecs cluster info
         ecs_cluster = ecs.Cluster.from_cluster_attributes(
-            self,"GetEcsCluster",
+            self, "GetEcsCluster",
             cluster_name=cluster_name,
             vpc=ec2_vpc,
             security_groups=[ec2_sgp]
@@ -78,33 +78,34 @@ class ApplicationStack(core.Stack):
 
         # create lambda function
         db_lambda = _lambda.Function(self, "lambda-function",
-            runtime=_lambda.Runtime.NODEJS_12_X,
-            handler="lambda-function.handler",
-            code=_lambda.Code.asset("./lambda"),
-            environment=dict(TABLE_NAME=demo_table.table_name)
-        )
+                                     runtime=_lambda.Runtime.NODEJS_12_X,
+                                     handler="lambda-function.handler",
+                                     code=_lambda.Code.asset("./lambda"),
+                                     environment=dict(
+                                         TABLE_NAME=demo_table.table_name)
+                                     )
 
         # grant permission to lambda to write to demo table
         demo_table.grant_full_access(db_lambda)
 
         # Fargate Service
         task_definition = ecs.FargateTaskDefinition(
-            self, 
-            "TaskDef", 
-            memory_limit_mib=512, 
+            self,
+            "TaskDef",
+            memory_limit_mib=512,
             cpu=256,
-            
+
         )
 
         container = task_definition.add_container(
-            "web", 
+            "web",
             image=ecs.ContainerImage.from_asset(
                 os.path.join(
-                    work_dir, 
+                    work_dir,
                     "container"
                 )
             ),
-            # Built custom health check for your application specific 
+            # Built custom health check for your application specific
             # and add them here. Ex: Pingcheck, Database etc.
             health_check=ecs.HealthCheck(
                 command=["CMD-SHELL", "echo"]
@@ -122,40 +123,40 @@ class ApplicationStack(core.Stack):
         # Create Fargate Service
         # Current limitation: Blue/Green deployment
         # https://github.com/aws/aws-cdk/issues/1559
-        service = ecs.FargateService(self, "Service", 
-            cluster=ecs_cluster,
-            task_definition=task_definition,
-            assign_public_ip=True,
-            deployment_controller=ecs.DeploymentController(
-                type=ecs.DeploymentControllerType.ECS
-            ),
-            desired_count=2,
-            min_healthy_percent=50
-        )       
+        service = ecs.FargateService(self, "Service",
+                                     cluster=ecs_cluster,
+                                     task_definition=task_definition,
+                                     assign_public_ip=True,
+                                     deployment_controller=ecs.DeploymentController(
+                                         type=ecs.DeploymentControllerType.ECS
+                                     ),
+                                     desired_count=2,
+                                     min_healthy_percent=50
+                                     )
 
         # Create Application LoadBalancer
-        lb = elbv2.ApplicationLoadBalancer(self, "LB", 
-            vpc=ec2_vpc, 
-            internet_facing=True
-        )
-        
+        lb = elbv2.ApplicationLoadBalancer(self, "LB",
+                                           vpc=ec2_vpc,
+                                           internet_facing=True
+                                           )
+
         # Add listener to the LB
-        listener = lb.add_listener("Listener", 
-            port=80, 
-            open=True
-        )
+        listener = lb.add_listener("Listener",
+                                   port=80,
+                                   open=True
+                                   )
 
         # Default to Lambda
         listener.add_targets("Lambda",
-            targets=[elb_targets.LambdaTarget(db_lambda)]
-        )  
+                             targets=[elb_targets.LambdaTarget(db_lambda)]
+                             )
 
         # Additionally route to container
-        listener.add_targets("Fargate",port=8000,
-            path_pattern="/container",
-            priority=10,
-            targets=[service]
-        )  
+        listener.add_targets("Fargate", port=8000,
+                             path_pattern="/container",
+                             priority=10,
+                             targets=[service]
+                             )
 
         # add an output with a well-known name to read it from the integ tests
         self.load_balancer_dns_name = lb.load_balancer_dns_name

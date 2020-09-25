@@ -1,4 +1,4 @@
-from aws_cdk.core import Construct, Stack, Stage, Environment, CfnOutput 
+from aws_cdk.core import Construct, Stack, Stage, Environment, CfnOutput
 from cdk_pipeline_ecs.ApplicationStack import ApplicationStack
 from cdk_pipeline_ecs.DatabaseStack import DatabaseStack
 from cdk_pipeline_ecs.WebServiceStack import WebServiceStack
@@ -13,12 +13,14 @@ class ApplicationStage(Stage):
 
         db_stack = DatabaseStack(self, "DatabaseStack")
 
-        app_stack = ApplicationStack(self, "ApplicationStack", db_stack.demo_table)
+        app_stack = ApplicationStack(
+            self, "ApplicationStack", db_stack.demo_table)
 
-        web_service_stack = WebServiceStack(self, "WebServiceStack", db_stack.demo_table)
+        web_service_stack = WebServiceStack(
+            self, "WebServiceStack", db_stack.demo_table)
 
         self.load_balancer_address = CfnOutput(app_stack, "LbAddress",
-            value=f"http://{app_stack.load_balancer_dns_name}")
+                                               value=f"http://{app_stack.load_balancer_dns_name}")
 
         self.gateway_url = CfnOutput(app_stack, "GatewayUrl",
-            value=web_service_stack.gw_url)
+                                     value=web_service_stack.gw_url)

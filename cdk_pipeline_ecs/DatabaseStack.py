@@ -1,8 +1,8 @@
-
 from aws_cdk import (
     core,
     aws_dynamodb
 )
+
 
 class DatabaseStack(core.Stack):
 
