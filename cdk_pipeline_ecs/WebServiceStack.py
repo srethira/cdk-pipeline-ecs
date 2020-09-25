@@ -19,9 +19,9 @@ class WebServiceStack(core.Stack):
         source_code = _lambda.Code.from_asset('./lambda', bundling=bundling_options)
 
         # create lambda function
-        db_lambda = _lambda.Function(self, "lambda_function",
+        db_lambda = _lambda.Function(self, "lambda-function",
             runtime=_lambda.Runtime.NODEJS_12_X,
-            handler="lambda_function.lambda_handler",
+            handler="lambda-function.handler",
             code=source_code
         )
 

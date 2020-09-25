@@ -2,7 +2,7 @@
   "name": "lambda-function",
   "version": "1.0.0",
   "description": "",
-  "main": "lambda_function.js",
+  "main": "lambda-function.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0"
   },

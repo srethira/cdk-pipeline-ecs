@@ -77,9 +77,9 @@ class ApplicationStack(core.Stack):
         )
 
         # create lambda function
-        db_lambda = _lambda.Function(self, "lambda_function",
+        db_lambda = _lambda.Function(self, "lambda-function",
             runtime=_lambda.Runtime.PYTHON_3_6,
-            handler="lambda_function.handler",
+            handler="lambda-function.handler",
             code=_lambda.Code.asset("./lambda"),
             environment=dict(TABLE_NAME=demo_table.table_name)
         )
