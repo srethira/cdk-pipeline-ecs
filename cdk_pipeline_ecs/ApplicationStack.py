@@ -6,7 +6,8 @@ from aws_cdk import (
     aws_elasticloadbalancingv2 as elbv2,
     aws_elasticloadbalancingv2_targets as elb_targets,
     aws_lambda as _lambda,
-    aws_dynamodb as dynamodb
+    aws_dynamodb as dynamodb,
+    aws_codedeploy as codedeploy
 )
 import os.path
 import pathlib
@@ -84,6 +85,13 @@ class ApplicationStack(core.Stack):
                                      environment=dict(
                                          TABLE_NAME=demo_table.table_name)
                                      )
+
+        codedeploy.LambdaDeploymentGroup(
+            self, 
+            "db-lambda-deployment",
+            alias=db_lambda.current_version.add_alias("live"),
+            deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE
+        )
 
         # grant permission to lambda to write to demo table
         demo_table.grant_full_access(db_lambda)

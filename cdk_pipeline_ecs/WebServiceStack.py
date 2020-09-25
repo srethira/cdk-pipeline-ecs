@@ -2,7 +2,8 @@ from aws_cdk import (
     core,
     aws_lambda as _lambda,
     aws_apigateway as _apigw,
-    aws_dynamodb as dynamodb
+    aws_dynamodb as dynamodb,
+    aws_codedeploy as codedeploy
 )
 
 
@@ -23,14 +24,21 @@ class WebServiceStack(core.Stack):
             './lambda', bundling=bundling_options)
 
         # create lambda function
-        db_lambda = _lambda.Function(self, "lambda-function",
-                                     runtime=_lambda.Runtime.NODEJS_12_X,
-                                     handler="handler.handler",
-                                     code=source_code
-                                     )
+        web_lambda = _lambda.Function(self, "lambda-function",
+                                      runtime=_lambda.Runtime.NODEJS_12_X,
+                                      handler="handler.handler",
+                                      code=source_code
+                                      )
+
+        codedeploy.LambdaDeploymentGroup(
+            self,
+            "web-lambda-deployment",
+            alias=web_lambda.current_version.add_alias("live"),
+            deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE
+        )
 
         gw = _apigw.LambdaRestApi(self, "Gateway",
-                                  handler=db_lambda,
+                                  handler=web_lambda,
                                   description="Endpoint for a simple Lambda-powered web service"
                                   )
 

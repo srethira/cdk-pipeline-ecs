@@ -17,7 +17,7 @@ class ApplicationStage(Stage):
             self, "ApplicationStack", db_stack.demo_table)
 
         web_service_stack = WebServiceStack(
-            self, "WebServiceStack", db_stack.demo_table)
+            self, "WebServiceStack")
 
         self.load_balancer_address = CfnOutput(app_stack, "LbAddress",
                                                value=f"http://{app_stack.load_balancer_dns_name}")
