@@ -7,7 +7,7 @@ exports.handler = async function(event) {
   var item = await dynamo.getItem({
     TableName: process.env.TABLE_NAME,
     Key:{
-      name: {
+      first_name: {
         S: 'srikanth'
       }
     }
