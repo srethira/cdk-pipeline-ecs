@@ -1,13 +1,14 @@
 from aws_cdk import (
     core,
     aws_lambda as _lambda,
-    aws_apigateway as _apigw
+    aws_apigateway as _apigw,
+    aws_dynamodb as dynamodb
 )
 
 class WebServiceStack(core.Stack):
     gw_url: core.CfnOutput = None
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, demo_table: dynamodb.Table, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         bundling_options = core.BundlingOptions(image=_lambda.Runtime.NODEJS_12_X.bundling_docker_image,
@@ -22,7 +23,8 @@ class WebServiceStack(core.Stack):
         db_lambda = _lambda.Function(self, "lambda-function",
             runtime=_lambda.Runtime.NODEJS_12_X,
             handler="lambda-function.handler",
-            code=source_code
+            code=source_code,
+            environment=dict(TABLE_NAME=demo_table.table_name)
         )
 
         gw = _apigw.LambdaRestApi(self, "Gateway", 

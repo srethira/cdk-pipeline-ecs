@@ -121,6 +121,8 @@ class ApplicationStack(core.Stack):
         container.add_port_mappings(port_mapping)
 
         # Create Fargate Service
+        # Current limitation: Blue/Green deployment
+        # https://github.com/aws/aws-cdk/issues/1559
         service = ecs.FargateService(self, "Service", 
             cluster=ecs_cluster,
             task_definition=task_definition,
