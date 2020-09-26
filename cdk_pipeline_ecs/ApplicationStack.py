@@ -140,7 +140,7 @@ class ApplicationStack(core.Stack):
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 actions=["lambda:InvokeFunction"],
-                resources=[my_datetime_lambda.current_version.function_arn]
+                resources=["*"]
             )
         )
 
@@ -170,7 +170,7 @@ class ApplicationStack(core.Stack):
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 actions=["lambda:InvokeFunction"],
-                resources=[my_datetime_lambda.current_version.function_arn]
+                resources=["*"]
             )
         )
 
