@@ -182,7 +182,7 @@ class ApplicationStack(core.Stack):
                 "rate(10 minutes)"
             ),
             targets=[events_targets.LambdaFunction(
-                my_datetime_lambda
+                my_datetime_lambda.current_version.function_arn
             )]
         )
 
