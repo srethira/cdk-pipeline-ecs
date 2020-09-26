@@ -148,12 +148,27 @@ class ApplicationStack(core.Stack):
             alarm_name="CanaryAlarm"
         )
 
+        my_datetime_lambda_ver = _lambda.Version(
+            self,
+            "my-datetime-lambda-ver",
+            lambda_=my_datetime_lambda,
+            removal_policy=core.RemovalPolicy.RETAIN
+        )
+        
+        my_datetime_lambda_alias = _lambda.Alias(
+            self, 
+            "Aliaslive", 
+            alias_name="live",
+            version=my_datetime_lambda_ver
+        )
+
         codedeploy.LambdaDeploymentGroup(
             self, 
             "datetime-lambda-deployment",
-            alias=my_datetime_lambda.current_version.add_alias(
-                "live"
-            ),
+            # alias=my_datetime_lambda.current_version.add_alias(
+            #     "live"
+            # ),
+            alias=my_datetime_lambda_alias,
             deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
             alarms=[alarm],
             auto_rollback=codedeploy.AutoRollbackConfig(
