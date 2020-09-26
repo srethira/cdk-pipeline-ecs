@@ -111,7 +111,7 @@ class ApplicationStack(core.Stack):
                 "./lambda"
             ),
             environment=dict(
-                NewVersion=my_datetime_lambda.current_version
+                NewVersion=my_datetime_lambda.current_version.version
             )
         )
 
@@ -125,7 +125,7 @@ class ApplicationStack(core.Stack):
                 "./lambda"
             ),
             environment=dict(
-                NewVersion=my_datetime_lambda.current_version
+                NewVersion=my_datetime_lambda.current_version.version
             )
         )
 
