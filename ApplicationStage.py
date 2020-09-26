@@ -16,9 +16,12 @@ class ApplicationStage(Stage):
         #     "DatabaseStack"
         # )
 
+        env = kwargs['env']
+
         app_stack = ApplicationStack(
             self, 
-            "ApplicationStack"
+            "ApplicationStack",
+            env=env
         )
 
         # web_service_stack = WebServiceStack(

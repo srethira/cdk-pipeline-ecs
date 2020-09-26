@@ -9,7 +9,8 @@ from aws_cdk import (
     aws_codedeploy as codedeploy,
     aws_events as events,
     aws_events_targets as events_targets,
-    aws_cloudwatch as cloudwatch
+    aws_cloudwatch as cloudwatch,
+    aws_iam as iam
 )
 import os.path
 import pathlib
@@ -20,6 +21,8 @@ class ApplicationStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+        env = kwargs['env']
 
         work_dir = pathlib.Path(__file__).parents[1]
 
@@ -101,6 +104,14 @@ class ApplicationStack(core.Stack):
             )
         )
 
+        my_datetime_lambda.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["lambda:InvokeFunction"],
+                resources=["*"]
+            )
+        )
+
         # beforeAllowTraffic lambda function
         pre_traffic_lambda = _lambda.Function(
             self, 
@@ -115,6 +126,24 @@ class ApplicationStack(core.Stack):
             )
         )
 
+        # print(env)
+
+        pre_traffic_lambda.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["codedeploy:PutLifecycleEventHookExecutionStatus"],
+                resources=[f"arn:aws:codedeploy:{env.region}:{env.account}:deploymentgroup:*"]
+            )
+        )
+
+        pre_traffic_lambda.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["lambda:InvokeFunction"],
+                resources=[my_datetime_lambda.current_version.version]
+            )
+        )
+
         # afterAllowTraffic lambda function
         post_traffic_lambda = _lambda.Function(
             self, 
@@ -126,6 +155,22 @@ class ApplicationStack(core.Stack):
             ),
             environment=dict(
                 NewVersion=my_datetime_lambda.current_version.version
+            )
+        )
+
+        post_traffic_lambda.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["codedeploy:PutLifecycleEventHookExecutionStatus"],
+                resources=[f"arn:aws:codedeploy:{env.region}:{env.account}:deploymentgroup:*"]
+            )
+        )
+
+        post_traffic_lambda.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["lambda:InvokeFunction"],
+                resources=[my_datetime_lambda.current_version.version]
             )
         )
 
@@ -168,7 +213,7 @@ class ApplicationStack(core.Stack):
         #     version=my_datetime_lambda_ver
         # )
 
-        codedeploy.LambdaDeploymentGroup(
+        lambda_deployment_group = codedeploy.LambdaDeploymentGroup(
             self, 
             "datetime-lambda-deployment",
             alias=my_datetime_lambda.current_version.add_alias(
