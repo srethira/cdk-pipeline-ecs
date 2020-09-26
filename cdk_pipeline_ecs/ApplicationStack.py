@@ -79,14 +79,14 @@ class ApplicationStack(core.Stack):
             security_group_id=security_group_id
         )
 
-        # Pass vpc, sgp and ecs cluster name to get ecs cluster info
-        ecs_cluster = ecs.Cluster.from_cluster_attributes(
-            self, 
-            "GetEcsCluster",
-            cluster_name=cluster_name,
-            vpc=ec2_vpc,
-            security_groups=[ec2_sgp]
-        )
+        # # Pass vpc, sgp and ecs cluster name to get ecs cluster info
+        # ecs_cluster = ecs.Cluster.from_cluster_attributes(
+        #     self, 
+        #     "GetEcsCluster",
+        #     cluster_name=cluster_name,
+        #     vpc=ec2_vpc,
+        #     security_groups=[ec2_sgp]
+        # )
 
         # myDateTimeFunction lambda function
         my_datetime_lambda = _lambda.Function(
@@ -143,7 +143,7 @@ class ApplicationStack(core.Stack):
             threshold=0,
             evaluation_periods=2,
             datapoints_to_alarm=2,
-            treat_missing_data=cloudwatch.TreatMissingData.BREACHING,
+            treat_missing_data=cloudwatch.TreatMissingData.IGNORE,
             period=core.Duration.minutes(5),
             alarm_name="CanaryAlarm"
         )
@@ -154,7 +154,7 @@ class ApplicationStack(core.Stack):
             lambda_=my_datetime_lambda,
             removal_policy=core.RemovalPolicy.RETAIN
         )
-        
+
         my_datetime_lambda_alias = _lambda.Alias(
             self, 
             "Aliaslive", 
@@ -178,54 +178,54 @@ class ApplicationStack(core.Stack):
             post_hook=post_traffic_lambda
         )
 
-        # Fargate Service
-        task_definition = ecs.FargateTaskDefinition(
-            self,
-            "TaskDef",
-            memory_limit_mib=512,
-            cpu=256,
-        )
+        # # Fargate Service
+        # task_definition = ecs.FargateTaskDefinition(
+        #     self,
+        #     "TaskDef",
+        #     memory_limit_mib=512,
+        #     cpu=256,
+        # )
 
-        container = task_definition.add_container(
-            "web",
-            image=ecs.ContainerImage.from_asset(
-                os.path.join(
-                    work_dir,
-                    "container"
-                )
-            ),
-            # Built custom health check for your application specific
-            # and add them here. Ex: Pingcheck, Database etc.
-            health_check=ecs.HealthCheck(
-                command=["CMD-SHELL", "echo"]
-            ),
-            # environment=dict(name="latest")
-        )
+        # container = task_definition.add_container(
+        #     "web",
+        #     image=ecs.ContainerImage.from_asset(
+        #         os.path.join(
+        #             work_dir,
+        #             "container"
+        #         )
+        #     ),
+        #     # Built custom health check for your application specific
+        #     # and add them here. Ex: Pingcheck, Database etc.
+        #     health_check=ecs.HealthCheck(
+        #         command=["CMD-SHELL", "echo"]
+        #     ),
+        #     # environment=dict(name="latest")
+        # )
 
-        port_mapping = ecs.PortMapping(
-            container_port=8000,
-            protocol=ecs.Protocol.TCP
-        )
+        # port_mapping = ecs.PortMapping(
+        #     container_port=8000,
+        #     protocol=ecs.Protocol.TCP
+        # )
 
-        container.add_port_mappings(
-            port_mapping
-        )
+        # container.add_port_mappings(
+        #     port_mapping
+        # )
 
-        # Create Fargate Service
-        # Current limitation: Blue/Green deployment
-        # https://github.com/aws/aws-cdk/issues/1559
-        service = ecs.FargateService(
-            self, 
-            "Service",
-            cluster=ecs_cluster,
-            task_definition=task_definition,
-            assign_public_ip=True,
-            deployment_controller=ecs.DeploymentController(
-                type=ecs.DeploymentControllerType.ECS
-            ),
-            desired_count=2,
-            min_healthy_percent=50
-        )
+        # # Create Fargate Service
+        # # Current limitation: Blue/Green deployment
+        # # https://github.com/aws/aws-cdk/issues/1559
+        # service = ecs.FargateService(
+        #     self, 
+        #     "Service",
+        #     cluster=ecs_cluster,
+        #     task_definition=task_definition,
+        #     assign_public_ip=True,
+        #     deployment_controller=ecs.DeploymentController(
+        #         type=ecs.DeploymentControllerType.ECS
+        #     ),
+        #     desired_count=2,
+        #     min_healthy_percent=50
+        # )
 
         # Create Application LoadBalancer
         lb = elbv2.ApplicationLoadBalancer(
@@ -250,14 +250,14 @@ class ApplicationStack(core.Stack):
             )]
         )
 
-        # Additionally route to container
-        listener.add_targets(
-            "Fargate", 
-            port=8000,
-            path_pattern="/container",
-            priority=10,
-            targets=[service]
-        )
+        # # Additionally route to container
+        # listener.add_targets(
+        #     "Fargate", 
+        #     port=8000,
+        #     path_pattern="/container",
+        #     priority=10,
+        #     targets=[service]
+        # )
 
         # add an output with a well-known name to read it from the integ tests
         self.load_balancer_dns_name = lb.load_balancer_dns_name			
