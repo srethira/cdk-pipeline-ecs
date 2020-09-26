@@ -95,7 +95,11 @@ class ApplicationStack(core.Stack):
             "my-datetime",
             runtime=_lambda.Runtime.NODEJS_12_X,
             handler="myDateTimeFunction.handler",
-            code=_lambda.Code.asset("./lambda")
+            code=_lambda.Code.asset("./lambda"),
+            current_version_options=_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.RETAIN, 
+                retry_attempts=1
+            )
         )
 
         # beforeAllowTraffic lambda function
