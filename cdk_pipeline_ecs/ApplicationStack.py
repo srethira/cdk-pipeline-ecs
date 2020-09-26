@@ -6,7 +6,6 @@ from aws_cdk import (
     aws_elasticloadbalancingv2 as elbv2,
     aws_elasticloadbalancingv2_targets as elb_targets,
     aws_lambda as _lambda,
-    aws_dynamodb as dynamodb,
     aws_codedeploy as codedeploy,
     aws_events as events,
     aws_events_targets as events_targets,
@@ -151,7 +150,7 @@ class ApplicationStack(core.Stack):
 
         codedeploy.LambdaDeploymentGroup(
             self, 
-            "db-lambda-deployment",
+            "datetime-lambda-deployment",
             alias=my_datetime_lambda.current_version.add_alias(
                 "live"
             ),
@@ -246,8 +245,4 @@ class ApplicationStack(core.Stack):
         )
 
         # add an output with a well-known name to read it from the integ tests
-        self.load_balancer_dns_name = lb.load_balancer_dns_name
-
-			
-			
-			
+        self.load_balancer_dns_name = lb.load_balancer_dns_name			
