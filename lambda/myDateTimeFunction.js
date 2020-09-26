@@ -1,4 +1,3 @@
-// sample lambda
 'use strict';
     
     exports.handler = function(event, context, callback) {
