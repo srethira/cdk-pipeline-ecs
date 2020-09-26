@@ -132,7 +132,7 @@ class ApplicationStack(core.Stack):
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 actions=["codedeploy:PutLifecycleEventHookExecutionStatus"],
-                resources=[f"arn:aws:codedeploy:{env.region}:{env.account}:deploymentgroup:*"]
+                resources=["*"]
             )
         )
 
@@ -162,7 +162,7 @@ class ApplicationStack(core.Stack):
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 actions=["codedeploy:PutLifecycleEventHookExecutionStatus"],
-                resources=[f"arn:aws:codedeploy:{env.region}:{env.account}:deploymentgroup:*"]
+                resources=["*"]
             )
         )
 
