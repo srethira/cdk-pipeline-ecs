@@ -154,7 +154,7 @@ class ApplicationStack(core.Stack):
             alias=my_datetime_lambda.current_version.add_alias(
                 "live"
             ),
-            deployment_config=codedeploy.LambdaDeploymentConfig.CANARY_10_PERCENT_5_MINUTES,
+            deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
             alarms=[alarm],
             auto_rollback=codedeploy.AutoRollbackConfig(
                 deployment_in_alarm=True
