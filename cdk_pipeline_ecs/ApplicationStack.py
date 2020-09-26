@@ -109,6 +109,9 @@ class ApplicationStack(core.Stack):
             handler="beforeAllowTraffic.handler",
             code=_lambda.Code.asset(
                 "./lambda"
+            ),
+            environment=dict(
+                NewVersion=my_datetime_lambda.current_version
             )
         )
 
@@ -120,6 +123,9 @@ class ApplicationStack(core.Stack):
             handler="afterAllowTraffic.handler",
             code=_lambda.Code.asset(
                 "./lambda"
+            ),
+            environment=dict(
+                NewVersion=my_datetime_lambda.current_version
             )
         )
 
