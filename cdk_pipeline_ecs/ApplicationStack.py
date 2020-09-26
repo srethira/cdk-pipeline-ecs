@@ -175,29 +175,29 @@ class ApplicationStack(core.Stack):
         )
 
         # create a cloudwatch event rule
-        # rule = events.Rule(
-        #     self, 
-        #     "CanaryRule",
-        #     schedule=events.Schedule.expression(
-        #         "rate(10 minutes)"
-        #     ),
-        #     targets=[events_targets.LambdaFunction(
-        #         my_datetime_lambda
-        #     )]
-        # )
+        rule = events.Rule(
+            self, 
+            "CanaryRule",
+            schedule=events.Schedule.expression(
+                "rate(10 minutes)"
+            ),
+            targets=[events_targets.LambdaFunction(
+                my_datetime_lambda
+            )]
+        )
 
         # create a cloudwatch alarm based on the lambda erros metrics
-        # alarm = cloudwatch.Alarm(
-        #     self, 
-        #     "CanaryAlarm",
-        #     metric=my_datetime_lambda.metric_errors(),
-        #     threshold=0,
-        #     evaluation_periods=2,
-        #     datapoints_to_alarm=2,
-        #     treat_missing_data=cloudwatch.TreatMissingData.IGNORE,
-        #     period=core.Duration.minutes(5),
-        #     alarm_name="CanaryAlarm"
-        # )
+        alarm = cloudwatch.Alarm(
+            self, 
+            "CanaryAlarm",
+            metric=my_datetime_lambda.metric_errors(),
+            threshold=0,
+            evaluation_periods=2,
+            datapoints_to_alarm=2,
+            treat_missing_data=cloudwatch.TreatMissingData.IGNORE,
+            period=core.Duration.minutes(5),
+            alarm_name="CanaryAlarm"
+        )
 
         # my_datetime_lambda_ver = _lambda.Version(
         #     self,
@@ -221,10 +221,10 @@ class ApplicationStack(core.Stack):
             ),
             # alias=my_datetime_lambda_alias,
             deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
-            # alarms=[alarm],
-            # auto_rollback=codedeploy.AutoRollbackConfig(
-            #     deployment_in_alarm=True
-            # ),
+            alarms=[alarm],
+            auto_rollback=codedeploy.AutoRollbackConfig(
+                deployment_in_alarm=True
+            ),
             pre_hook=pre_traffic_lambda,
             post_hook=post_traffic_lambda
         )
