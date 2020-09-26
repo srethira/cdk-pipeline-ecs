@@ -183,14 +183,15 @@ class ApplicationStack(core.Stack):
             ),
             targets=[events_targets.LambdaFunction(
                 my_datetime_lambda.current_version
-            )]
+            )],
+
         )
 
         # create a cloudwatch alarm based on the lambda erros metrics
         alarm = cloudwatch.Alarm(
             self, 
             "CanaryAlarm",
-            metric=my_datetime_lambda.metric_errors(),
+            metric=my_datetime_lambda.current_version.metric_errors(),
             threshold=0,
             evaluation_periods=2,
             datapoints_to_alarm=2,
