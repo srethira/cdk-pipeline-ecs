@@ -38,7 +38,7 @@
             this section. The framework created by AWS CDK detects the update 
             and triggers a deployment by CodeDeploy. The deployment shifts 
             production traffic to the updated version of this function.
-    */            
+        
             case "time":
             var d = new Date();
             var h = d.getHours();
@@ -52,7 +52,7 @@
             };
             sc = 200;
             break;
-
+    */    
           default:
             result = {
               "error": "Must specify 'date' or 'time'."
