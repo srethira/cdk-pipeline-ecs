@@ -124,56 +124,56 @@ class ApplicationStack(core.Stack):
         )
 
         # create a cloudwatch event rule
-        rule = events.Rule(
-            self, 
-            "CanaryRule",
-            schedule=events.Schedule.expression(
-                "rate(10 minutes)"
-            ),
-            targets=[events_targets.LambdaFunction(
-                my_datetime_lambda
-            )]
-        )
+        # rule = events.Rule(
+        #     self, 
+        #     "CanaryRule",
+        #     schedule=events.Schedule.expression(
+        #         "rate(10 minutes)"
+        #     ),
+        #     targets=[events_targets.LambdaFunction(
+        #         my_datetime_lambda
+        #     )]
+        # )
 
         # create a cloudwatch alarm based on the lambda erros metrics
-        alarm = cloudwatch.Alarm(
-            self, 
-            "CanaryAlarm",
-            metric=my_datetime_lambda.metric_errors(),
-            threshold=0,
-            evaluation_periods=2,
-            datapoints_to_alarm=2,
-            treat_missing_data=cloudwatch.TreatMissingData.IGNORE,
-            period=core.Duration.minutes(5),
-            alarm_name="CanaryAlarm"
-        )
+        # alarm = cloudwatch.Alarm(
+        #     self, 
+        #     "CanaryAlarm",
+        #     metric=my_datetime_lambda.metric_errors(),
+        #     threshold=0,
+        #     evaluation_periods=2,
+        #     datapoints_to_alarm=2,
+        #     treat_missing_data=cloudwatch.TreatMissingData.IGNORE,
+        #     period=core.Duration.minutes(5),
+        #     alarm_name="CanaryAlarm"
+        # )
 
-        my_datetime_lambda_ver = _lambda.Version(
-            self,
-            "my-datetime-lambda-ver",
-            lambda_=my_datetime_lambda,
-            removal_policy=core.RemovalPolicy.RETAIN
-        )
+        # my_datetime_lambda_ver = _lambda.Version(
+        #     self,
+        #     "my-datetime-lambda-ver",
+        #     lambda_=my_datetime_lambda,
+        #     removal_policy=core.RemovalPolicy.RETAIN
+        # )
 
-        my_datetime_lambda_alias = _lambda.Alias(
-            self, 
-            "Aliaslive", 
-            alias_name="live",
-            version=my_datetime_lambda_ver
-        )
+        # my_datetime_lambda_alias = _lambda.Alias(
+        #     self, 
+        #     "Aliaslive", 
+        #     alias_name="live",
+        #     version=my_datetime_lambda_ver
+        # )
 
         codedeploy.LambdaDeploymentGroup(
             self, 
             "datetime-lambda-deployment",
-            # alias=my_datetime_lambda.current_version.add_alias(
-            #     "live"
-            # ),
-            alias=my_datetime_lambda_alias,
-            deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
-            alarms=[alarm],
-            auto_rollback=codedeploy.AutoRollbackConfig(
-                deployment_in_alarm=True
+            alias=my_datetime_lambda.current_version.add_alias(
+                "live"
             ),
+            # alias=my_datetime_lambda_alias,
+            deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
+            # alarms=[alarm],
+            # auto_rollback=codedeploy.AutoRollbackConfig(
+            #     deployment_in_alarm=True
+            # ),
             pre_hook=pre_traffic_lambda,
             post_hook=post_traffic_lambda
         )
