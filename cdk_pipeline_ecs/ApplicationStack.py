@@ -191,7 +191,7 @@ class ApplicationStack(core.Stack):
         alarm = cloudwatch.Alarm(
             self, 
             "CanaryAlarm",
-            metric=my_datetime_lambda.current_version.metric_errors(),
+            metric=my_datetime_lambda.current_version.metric_invocations(),
             threshold=0,
             evaluation_periods=2,
             datapoints_to_alarm=2,
