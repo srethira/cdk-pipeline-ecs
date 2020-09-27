@@ -37,7 +37,7 @@
             this section. The framework created by AWS CDK detects the update 
             and triggers a deployment by CodeDeploy. The deployment shifts 
             production traffic to the updated version of this function.
-    */            
+          
             case "time":
             var d = new Date();
             var h = d.getHours();
@@ -59,7 +59,7 @@
             sc = 400;
           break;
       }
-    
+    */      
       const response = {
         statusCode: sc,
         headers: { "Content-type": "application/json" },
