@@ -11,12 +11,12 @@ class ApplicationStage(Stage):
     def __init__(self, scope: Construct, id: str, **kwargs):
         super().__init__(scope, id, **kwargs)
 
-        # db_stack = DatabaseStack(
-        #     self, 
-        #     "DatabaseStack"
-        # )
-
         env = kwargs['env']
+
+        db_stack = DatabaseStack(
+            self, 
+            "DatabaseStack"
+        )
 
         app_stack = ApplicationStack(
             self, 
@@ -24,11 +24,11 @@ class ApplicationStage(Stage):
             env=env
         )
 
-        # web_service_stack = WebServiceStack(
-        #     self, 
-        #     "WebServiceStack", 
-        #     db_stack.demo_table
-        # )
+        web_service_stack = WebServiceStack(
+            self, 
+            "WebServiceStack", 
+            db_stack.demo_table
+        )
 
         self.load_balancer_address = CfnOutput(
             app_stack, 
@@ -36,8 +36,8 @@ class ApplicationStage(Stage):
             value=f"http://{app_stack.load_balancer_dns_name}"
         )
 
-        # self.gateway_url = CfnOutput(
-        #     web_service_stack, 
-        #     "GatewayUrl",
-        #     value=web_service_stack.gw_url
-        # )
+        self.gateway_url = CfnOutput(
+            web_service_stack, 
+            "GatewayUrl",
+            value=web_service_stack.gw_url
+        )

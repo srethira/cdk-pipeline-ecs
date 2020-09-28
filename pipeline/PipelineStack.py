@@ -33,7 +33,7 @@ class PipelineStack(Stack):
                 trigger=codepipeline_actions.GitHubTrigger.POLL,
                 owner="srethira",
                 repo="cdk-pipeline-ecs",
-                branch="lambda-bg"
+                branch="master"
             ),
             # Current limitation: generate CodeBuild reports within @aws-cdk/cdk-pipelines
             # https://github.com/aws/aws-cdk/issues/10464
