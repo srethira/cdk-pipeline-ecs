@@ -212,25 +212,6 @@ class ApplicationStack(core.Stack):
             internet_facing=True
         )
 
-        # Add listener to the LB
-        listener = lb.add_listener(
-            "ALBListenerProdTraffic",
-            port=80,
-            protocol=elbv2.ApplicationProtocol.HTTP,
-            open=True,
-            default_action=elbv2.ListenerAction(
-                action_json=elbv2.CfnListener.ActionProperty(
-                    type="forward",
-                    forward_config=elbv2.CfnListener.ForwardConfigProperty(
-                        target_groups=elbv2.CfnListener.TargetGroupTupleProperty(
-                            target_group_arn=lb_tg_blue.load_balancer_arns,
-                            weight=1
-                        )
-                    )
-                )
-            )
-        )
-
         lb_tg_blue = elbv2.ApplicationTargetGroup(
             self,
             "ALBTargetGroupBlue",
@@ -245,6 +226,25 @@ class ApplicationStack(core.Stack):
             port=80,
             protocol=elbv2.ApplicationProtocol.HTTP,
             vpc=ec2_vpc
+        )
+
+        # Add listener to the LB
+        listener = lb.add_listener(
+            "ALBListenerProdTraffic",
+            port=80,
+            protocol=elbv2.ApplicationProtocol.HTTP,
+            open=True,
+            default_action=elbv2.ListenerAction(
+                action_json=elbv2.CfnListener.ActionProperty(
+                    type="forward",
+                    forward_config=elbv2.CfnListener.ForwardConfigProperty(
+                        target_groups=[elbv2.CfnListener.TargetGroupTupleProperty(
+                            target_group_arn=lb_tg_blue.load_balancer_arns,
+                            weight=1
+                        )]
+                    )
+                )
+            )
         )
 
         # Fargate Service
