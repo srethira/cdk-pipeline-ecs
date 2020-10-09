@@ -351,12 +351,12 @@ class ApplicationStack(core.Stack):
                 )
             )],
             traffic_routing_config=core.CfnTrafficRoutingConfig(
-                type=core.CfnTrafficRoutingType.TIME_BASED_CANARY,
-                time_based_linear=None,
-                time_based_canary=core.CfnTrafficRoutingTimeBasedCanary(
-                  bake_time_mins=5,
-                  step_percentage=15  
-                )
+                type=core.CfnTrafficRoutingType.ALL_AT_ONCE
+                # type=core.CfnTrafficRoutingType.TIME_BASED_CANARY,
+                # time_based_canary=core.CfnTrafficRoutingTimeBasedCanary(
+                #   bake_time_mins=5,
+                #   step_percentage=15  
+                # )
             ),
             service_role=ecs_task_execution_role.role_name,
         )
