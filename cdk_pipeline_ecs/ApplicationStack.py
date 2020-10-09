@@ -221,16 +221,12 @@ class ApplicationStack(core.Stack):
             default_action=elbv2.ListenerAction(
                 action_json=elbv2.CfnListener.ActionProperty(
                     type="forward",
-                    forward_config={
-                        "TargetGroups": [
-                            {
-                                "TargetGroupArn": {
-                                    "Ref": "ALBTargetGroupBlue"
-                                },
-                                "Weight": 1
-                            }
-                        ]
-                    }
+                    forward_config=elbv2.CfnListener.ForwardConfigProperty(
+                        target_groups=elbv2.CfnListener.TargetGroupTupleProperty(
+                            target_group_arn=lb_tg_blue.load_balancer_arns,
+                            weight=1
+                        )
+                    )
                 )
             )
         )
@@ -314,11 +310,11 @@ class ApplicationStack(core.Stack):
             "AWS::CodeDeployBlueGreen"
         )
 
-        core.CfnHook(
-            self,
-            "EcsHook",
-            type="AWS::CodeDeploy::BlueGreen"
-        )
+        # core.CfnHook(
+        #     self,
+        #     "EcsHook",
+        #     type="AWS::CodeDeploy::BlueGreen"
+        # )
 
         ecs_task_execution_role=iam.Role(self,
             "ECSTaskExecutionRole",
@@ -332,7 +328,7 @@ class ApplicationStack(core.Stack):
 
         core.CfnCodeDeployBlueGreenHook(
             self,
-            "EcsCodeDeployBlueGreenHook",
+            "CodeDeployBlueGreenHook",
             applications=[core.CfnCodeDeployBlueGreenApplication(
                 ecs_attributes=core.CfnCodeDeployBlueGreenEcsAttributes(
                     task_definitions=["BlueTaskDefinition","GreenTaskDefinition"],
