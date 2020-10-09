@@ -21,8 +21,8 @@ class PipelineStack(Stack):
 
         pipeline = CdkPipeline(
             self, 
-            "Pipeline",
-            pipeline_name="MyAppPipeline",
+            "PipelineECS",
+            pipeline_name="MyAppPipelineECS",
             cloud_assembly_artifact=cloud_assembly_artifact,
             source_action=codepipeline_actions.GitHubSourceAction(
                 action_name="GitHub",
@@ -33,7 +33,7 @@ class PipelineStack(Stack):
                 trigger=codepipeline_actions.GitHubTrigger.POLL,
                 owner="srethira",
                 repo="cdk-pipeline-ecs",
-                branch="master"
+                branch="ecsbg"
             ),
             # Current limitation: generate CodeBuild reports within @aws-cdk/cdk-pipelines
             # https://github.com/aws/aws-cdk/issues/10464

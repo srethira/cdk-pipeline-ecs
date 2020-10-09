@@ -82,146 +82,185 @@ class ApplicationStack(core.Stack):
             security_group_id=security_group_id
         )
 
-        # myDateTimeFunction lambda function
-        my_datetime_lambda = _lambda.Function(
+        # # myDateTimeFunction lambda function
+        # my_datetime_lambda = _lambda.Function(
+        #     self, 
+        #     "my-datetime",
+        #     runtime=_lambda.Runtime.NODEJS_12_X,
+        #     handler="myDateTimeFunction.handler",
+        #     code=_lambda.Code.asset("./lambda"),
+        #     current_version_options=_lambda.VersionOptions(
+        #         removal_policy=core.RemovalPolicy.RETAIN, 
+        #         retry_attempts=1
+        #     )
+        # )
+
+        # my_datetime_lambda.add_to_role_policy(
+        #     iam.PolicyStatement(
+        #         effect=iam.Effect.ALLOW,
+        #         actions=["lambda:InvokeFunction"],
+        #         resources=["*"]
+        #     )
+        # )
+
+        # # beforeAllowTraffic lambda function
+        # pre_traffic_lambda = _lambda.Function(
+        #     self, 
+        #     "pre-traffic",
+        #     runtime=_lambda.Runtime.NODEJS_12_X,
+        #     handler="beforeAllowTraffic.handler",
+        #     code=_lambda.Code.asset(
+        #         "./lambda"
+        #     ),
+        #     environment=dict(
+        #         NewVersion=my_datetime_lambda.current_version.function_arn
+        #     )
+        # )
+
+        # pre_traffic_lambda.add_to_role_policy(
+        #     iam.PolicyStatement(
+        #         effect=iam.Effect.ALLOW,
+        #         actions=["codedeploy:PutLifecycleEventHookExecutionStatus"],
+        #         resources=["*"]
+        #     )
+        # )
+
+        # pre_traffic_lambda.add_to_role_policy(
+        #     iam.PolicyStatement(
+        #         effect=iam.Effect.ALLOW,
+        #         actions=["lambda:InvokeFunction"],
+        #         resources=["*"]
+        #     )
+        # )
+
+        # # afterAllowTraffic lambda function
+        # post_traffic_lambda = _lambda.Function(
+        #     self, 
+        #     "post-traffic",
+        #     runtime=_lambda.Runtime.NODEJS_12_X,
+        #     handler="afterAllowTraffic.handler",
+        #     code=_lambda.Code.asset(
+        #         "./lambda"
+        #     ),
+        #     environment=dict(
+        #         NewVersion=my_datetime_lambda.current_version.function_arn
+        #     )
+        # )
+
+        # post_traffic_lambda.add_to_role_policy(
+        #     iam.PolicyStatement(
+        #         effect=iam.Effect.ALLOW,
+        #         actions=["codedeploy:PutLifecycleEventHookExecutionStatus"],
+        #         resources=["*"]
+        #     )
+        # )
+
+        # post_traffic_lambda.add_to_role_policy(
+        #     iam.PolicyStatement(
+        #         effect=iam.Effect.ALLOW,
+        #         actions=["lambda:InvokeFunction"],
+        #         resources=["*"]
+        #     )
+        # )
+
+        # # create a cloudwatch event rule
+        # rule = events.Rule(
+        #     self, 
+        #     "CanaryRule",
+        #     schedule=events.Schedule.expression(
+        #         "rate(10 minutes)"
+        #     ),
+        #     targets=[events_targets.LambdaFunction(
+        #         my_datetime_lambda.current_version
+        #     )],
+
+        # )
+
+        # # create a cloudwatch alarm based on the lambda erros metrics
+        # alarm = cloudwatch.Alarm(
+        #     self, 
+        #     "CanaryAlarm",
+        #     metric=my_datetime_lambda.current_version.metric_invocations(),
+        #     threshold=0,
+        #     evaluation_periods=2,
+        #     datapoints_to_alarm=2,
+        #     treat_missing_data=cloudwatch.TreatMissingData.IGNORE,
+        #     period=core.Duration.minutes(5),
+        #     alarm_name="CanaryAlarm"
+        # )
+
+        # lambda_deployment_group = codedeploy.LambdaDeploymentGroup(
+        #     self, 
+        #     "datetime-lambda-deployment",
+        #     alias=my_datetime_lambda.current_version.add_alias(
+        #         "live"
+        #     ),
+        #     deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
+        #     alarms=[alarm],
+        #     auto_rollback=codedeploy.AutoRollbackConfig(
+        #         deployment_in_alarm=True
+        #     ),
+        #     pre_hook=pre_traffic_lambda,
+        #     post_hook=post_traffic_lambda
+        # )
+
+        # Create Application LoadBalancer
+        lb = elbv2.ApplicationLoadBalancer(
             self, 
-            "my-datetime",
-            runtime=_lambda.Runtime.NODEJS_12_X,
-            handler="myDateTimeFunction.handler",
-            code=_lambda.Code.asset("./lambda"),
-            current_version_options=_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.RETAIN, 
-                retry_attempts=1
-            )
-        )
-
-        my_datetime_lambda.add_to_role_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["lambda:InvokeFunction"],
-                resources=["*"]
-            )
-        )
-
-        # beforeAllowTraffic lambda function
-        pre_traffic_lambda = _lambda.Function(
-            self, 
-            "pre-traffic",
-            runtime=_lambda.Runtime.NODEJS_12_X,
-            handler="beforeAllowTraffic.handler",
-            code=_lambda.Code.asset(
-                "./lambda"
-            ),
-            environment=dict(
-                NewVersion=my_datetime_lambda.current_version.function_arn
-            )
-        )
-
-        pre_traffic_lambda.add_to_role_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["codedeploy:PutLifecycleEventHookExecutionStatus"],
-                resources=["*"]
-            )
-        )
-
-        pre_traffic_lambda.add_to_role_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["lambda:InvokeFunction"],
-                resources=["*"]
-            )
-        )
-
-        # afterAllowTraffic lambda function
-        post_traffic_lambda = _lambda.Function(
-            self, 
-            "post-traffic",
-            runtime=_lambda.Runtime.NODEJS_12_X,
-            handler="afterAllowTraffic.handler",
-            code=_lambda.Code.asset(
-                "./lambda"
-            ),
-            environment=dict(
-                NewVersion=my_datetime_lambda.current_version.function_arn
-            )
-        )
-
-        post_traffic_lambda.add_to_role_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["codedeploy:PutLifecycleEventHookExecutionStatus"],
-                resources=["*"]
-            )
-        )
-
-        post_traffic_lambda.add_to_role_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["lambda:InvokeFunction"],
-                resources=["*"]
-            )
-        )
-
-        # create a cloudwatch event rule
-        rule = events.Rule(
-            self, 
-            "CanaryRule",
-            schedule=events.Schedule.expression(
-                "rate(10 minutes)"
-            ),
-            targets=[events_targets.LambdaFunction(
-                my_datetime_lambda.current_version
-            )],
-
-        )
-
-        # create a cloudwatch alarm based on the lambda erros metrics
-        alarm = cloudwatch.Alarm(
-            self, 
-            "CanaryAlarm",
-            metric=my_datetime_lambda.current_version.metric_invocations(),
-            threshold=0,
-            evaluation_periods=2,
-            datapoints_to_alarm=2,
-            treat_missing_data=cloudwatch.TreatMissingData.IGNORE,
-            period=core.Duration.minutes(5),
-            alarm_name="CanaryAlarm"
-        )
-
-        lambda_deployment_group = codedeploy.LambdaDeploymentGroup(
-            self, 
-            "datetime-lambda-deployment",
-            alias=my_datetime_lambda.current_version.add_alias(
-                "live"
-            ),
-            deployment_config=codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
-            alarms=[alarm],
-            auto_rollback=codedeploy.AutoRollbackConfig(
-                deployment_in_alarm=True
-            ),
-            pre_hook=pre_traffic_lambda,
-            post_hook=post_traffic_lambda
-        )
-
-        # Pass vpc, sgp and ecs cluster name to get ecs cluster info
-        ecs_cluster = ecs.Cluster.from_cluster_attributes(
-            self, 
-            "GetEcsCluster",
-            cluster_name=cluster_name,
+            "LB",
             vpc=ec2_vpc,
-            security_groups=[ec2_sgp]
+            internet_facing=True
+        )
+
+        # Add listener to the LB
+        listener = lb.add_listener(
+            "ALBListenerProdTraffic",
+            port=80,
+            protocol=elbv2.ApplicationProtocol.HTTP,
+            open=True,
+            default_action=elbv2.ListenerAction(
+                action_json=elbv2.CfnListener.ActionProperty(
+                    type="forward",
+                    forward_config={
+                        "TargetGroups": [
+                            {
+                                "TargetGroupArn": {
+                                    "Ref": "ALBTargetGroupBlue"
+                                },
+                                "Weight": 1
+                            }
+                        ]
+                    }
+                )
+            )
+        )
+
+        lb_tg_blue = elbv2.ApplicationTargetGroup(
+            self,
+            "ALBTargetGroupBlue",
+            port=80,
+            protocol=elbv2.ApplicationProtocol.HTTP,
+            vpc=ec2_vpc
+        )
+
+        lb_tg_green = elbv2.ApplicationTargetGroup(
+            self,
+            "ALBTargetGroupGreen",
+            port=80,
+            protocol=elbv2.ApplicationProtocol.HTTP,
+            vpc=ec2_vpc
         )
 
         # Fargate Service
-        task_definition = ecs.FargateTaskDefinition(
+        blue_task_definition = ecs.FargateTaskDefinition(
             self,
-            "TaskDef",
+            "BlueTaskDefinition",
             memory_limit_mib=512,
             cpu=256,
+            family="ecs-demo"
         )
 
-        container = task_definition.add_container(
+        container = blue_task_definition.add_container(
             "web",
             image=ecs.ContainerImage.from_asset(
                 os.path.join(
@@ -229,7 +268,7 @@ class ApplicationStack(core.Stack):
                     "container"
                 )
             ),
-            # Built custom health check for your application specific
+            # Build custom health check for your application specific
             # and add them here. Ex: Pingcheck, Database etc.
             health_check=ecs.HealthCheck(
                 command=["CMD-SHELL", "echo"]
@@ -246,53 +285,116 @@ class ApplicationStack(core.Stack):
             port_mapping
         )
 
-        # Create Fargate Service
+        # Pass vpc, sgp and ecs cluster name to get ecs cluster info
+        ecs_cluster = ecs.Cluster.from_cluster_attributes(
+            self, 
+            "GetEcsCluster",
+            cluster_name=cluster_name,
+            vpc=ec2_vpc,
+            security_groups=[ec2_sgp]
+        )
+
+         # Create Fargate Service
         # Current limitation: Blue/Green deployment
         # https://github.com/aws/aws-cdk/issues/1559
         service = ecs.FargateService(
             self, 
             "Service",
             cluster=ecs_cluster,
-            task_definition=task_definition,
+            task_definition=blue_task_definition,
             assign_public_ip=True,
             deployment_controller=ecs.DeploymentController(
-                type=ecs.DeploymentControllerType.ECS
+                type=ecs.DeploymentControllerType.EXTERNAL
             ),
             desired_count=2,
             min_healthy_percent=50
         )
 
-        # Create Application LoadBalancer
-        lb = elbv2.ApplicationLoadBalancer(
-            self, 
-            "LB",
-            vpc=ec2_vpc,
-            internet_facing=True
+        self.add_transform(
+            "AWS::CodeDeployBlueGreen"
         )
 
-        # Add listener to the LB
-        listener = lb.add_listener(
-            "Listener",
-            port=80,
-            open=True
+        core.CfnHook(
+            self,
+            "EcsHook",
+            type="AWS::CodeDeploy::BlueGreen"
         )
 
-        # Default to Lambda
-        listener.add_targets(
-            "Lambda",
-            targets=[elb_targets.LambdaTarget(
-                my_datetime_lambda
+        ecs_task_execution_role=iam.Role(self,
+            "ECSTaskExecutionRole",
+            assumed_by=iam.ServicePrincipal(
+                service="ecs-tasks.amazonaws.com"
+            ),
+            managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name(
+                managed_policy_name="AmazonECSTaskExecutionRolePolicy"
             )]
         )
 
-        # Additionally route to container
-        listener.add_targets(
-            "Fargate", 
-            port=8000,
-            path_pattern="/container",
-            priority=10,
-            targets=[service]
+        core.CfnCodeDeployBlueGreenHook(
+            self,
+            "EcsCodeDeployBlueGreenHook",
+            applications=[core.CfnCodeDeployBlueGreenApplication(
+                ecs_attributes=core.CfnCodeDeployBlueGreenEcsAttributes(
+                    task_definitions=["BlueTaskDefinition","GreenTaskDefinition"],
+                    task_sets=["BlueTaskSet","GreenTaskSet"],
+                    traffic_routing=core.CfnTrafficRouting(
+                        prod_traffic_route=core.CfnTrafficRoute(
+                            logical_id=listener.node.default_child.__getattribute__("logical_id"),
+                            type="AWS::ElasticLoadBalancingV2::Listener"
+                        ),
+                        test_traffic_route=core.CfnTrafficRoute(
+                            logical_id=listener.node.default_child.__getattribute__("logical_id"),
+                            type="AWS::ElasticLoadBalancingV2::Listener"
+                        ),
+                        target_groups=["ALBTargetGroupBlue","ALBTargetGroupGreen"]
+                    )
+                ),
+                target=core.CfnCodeDeployBlueGreenApplicationTarget(
+                    logical_id="ServiceD69D759B",
+                    type="AWS::ECS::Service"
+                )
+            )],
+            service_role=ecs_task_execution_role.role_name,
         )
+
+        blue_task_set=ecs.CfnTaskSet(
+            self,
+            "BlueTaskSet",
+            cluster=ecs_cluster.cluster_name,
+            launch_type="FARGATE",
+            service=service.service_name,
+            task_definition="BlueTaskDefinition",
+            load_balancers=[ecs.CfnTaskSet.LoadBalancerProperty(
+                container_name="DemoApp",
+                container_port=80,
+                target_group_arn=lb_tg_blue.load_balancer_arns
+            )]
+        )
+
+        ecs.CfnPrimaryTaskSet(
+            self,
+            "PrimaryTaskSet",
+            cluster=ecs_cluster.cluster_name,
+            service=service.service_name,
+            task_set_id="BlueTaskSet",
+        )
+
+        # # Default to Lambda
+        # listener.add_targets(
+        #     "Lambda",
+        #     targets=[elb_targets.LambdaTarget(
+        #         my_datetime_lambda
+        #     )]
+        # )
+
+        # # Additionally route to container
+        # listener.add_targets(
+        #     "Fargate", 
+        #     port=8000,
+        #     path_pattern="/container",
+        #     priority=10,
+        #     targets=[service]
+        # )
 
         # add an output with a well-known name to read it from the integ tests
         self.load_balancer_dns_name = lb.load_balancer_dns_name			
