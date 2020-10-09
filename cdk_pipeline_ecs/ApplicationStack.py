@@ -352,7 +352,7 @@ class ApplicationStack(core.Stack):
             )],
             traffic_routing_config=core.CfnTrafficRoutingConfig(
                 type=core.CfnTrafficRoutingType.TIME_BASED_CANARY,
-                time_based_linear=None,
+                time_based_linear=Null,
                 time_based_canary=core.CfnTrafficRoutingTimeBasedCanary(
                   bake_time_mins=5,
                   step_percentage=15  
