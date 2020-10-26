@@ -17,7 +17,7 @@ class PipelineStack(Stack):
         source_artifact = codepipeline.Artifact()
         cloud_assembly_artifact = codepipeline.Artifact()
 
-        github_token_secret_name = os.getenv('GITHUB_TOKEN', '')
+        github_token_secret_name = os.getenv('GITHUB_TOKEN', 'my-github-token')
 
         pipeline = CdkPipeline(
             self, 
