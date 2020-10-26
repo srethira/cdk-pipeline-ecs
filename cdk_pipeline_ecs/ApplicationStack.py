@@ -331,8 +331,8 @@ class ApplicationStack(core.Stack):
             "CodeDeployBlueGreenHook",
             applications=[core.CfnCodeDeployBlueGreenApplication(
                 ecs_attributes=core.CfnCodeDeployBlueGreenEcsAttributes(
-                    task_definitions=["BlueTaskDefinition","GreenTaskDefinition"],
-                    task_sets=["BlueTaskSet","GreenTaskSet"],
+                    task_definitions=["BlueTaskDefinitionD77B7F7A"],
+                    task_sets=["BlueTaskSet"],
                     traffic_routing=core.CfnTrafficRouting(
                         prod_traffic_route=core.CfnTrafficRoute(
                             logical_id=listener.node.default_child.__getattribute__("logical_id"),
@@ -342,7 +342,7 @@ class ApplicationStack(core.Stack):
                             logical_id=listener.node.default_child.__getattribute__("logical_id"),
                             type="AWS::ElasticLoadBalancingV2::Listener"
                         ),
-                        target_groups=["ALBTargetGroupBlue","ALBTargetGroupGreen"]
+                        target_groups=["ALBTargetGroupBlue8419EC11","ALBTargetGroupGreenACEF9CF6"]
                     )
                 ),
                 target=core.CfnCodeDeployBlueGreenApplicationTarget(
